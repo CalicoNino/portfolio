@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { themes, type ThemeKey } from "@/lib/themes"
-import { PirateIcon } from "@/components/icons/pirate-icon"
-import { SunIcon } from "@/components/icons/sun-icon"
-import { MoonIcon } from "@/components/icons/moon-icon"
-import blogPostsData from "@/data/blog-posts.json"
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { themes, type ThemeKey } from "@/lib/themes";
+import { PirateIcon } from "@/components/icons/pirate-icon";
+import { SunIcon } from "@/components/icons/sun-icon";
+import { MoonIcon } from "@/components/icons/moon-icon";
+import blogPostsData from "@/data/blog-posts.json";
 
 export default function BlogPage() {
-  const blogPosts = blogPostsData
-  const [isDark, setIsDark] = useState(true)
-  const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust")
+  const blogPosts = blogPostsData;
+  const [isDark, setIsDark] = useState(true);
+  const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust");
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark)
-  }, [isDark])
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
 
   useEffect(() => {
-    const theme = themes[activeTheme]
-    const root = document.documentElement
+    const theme = themes[activeTheme];
+    const root = document.documentElement;
 
     if (isDark) {
-      root.style.setProperty("--primary", theme.colors.primaryDark)
-      root.style.setProperty("--accent", theme.colors.accentDark)
+      root.style.setProperty("--primary", theme.colors.primaryDark);
+      root.style.setProperty("--accent", theme.colors.accentDark);
     } else {
-      root.style.setProperty("--primary", theme.colors.primary)
-      root.style.setProperty("--accent", theme.colors.accent)
+      root.style.setProperty("--primary", theme.colors.primary);
+      root.style.setProperty("--accent", theme.colors.accent);
     }
 
-    root.style.setProperty("--bg-1", theme.colors.bg1)
-    root.style.setProperty("--bg-2", theme.colors.bg2)
-    root.style.setProperty("--bg-3", theme.colors.bg3)
-  }, [activeTheme, isDark])
+    root.style.setProperty("--bg-1", theme.colors.bg1);
+    root.style.setProperty("--bg-2", theme.colors.bg2);
+    root.style.setProperty("--bg-3", theme.colors.bg3);
+  }, [activeTheme, isDark]);
 
   const toggleTheme = () => {
-    setIsDark(!isDark)
-  }
+    setIsDark(!isDark);
+  };
 
-  const theme = themes[activeTheme]
+  const theme = themes[activeTheme];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -62,19 +62,21 @@ export default function BlogPage() {
               <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
                 {/* Language theme switcher */}
                 <div className="flex gap-1.5 sm:gap-2 flex-wrap">
-                  {["rust", "go", "typescript", "python", "sql", "java"].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => setActiveTheme(lang as ThemeKey)}
-                      className={`px-2 py-1 text-xs font-mono border rounded transition-all duration-300 cursor-pointer ${
-                        activeTheme === lang
-                          ? "border-primary bg-primary/20 text-primary"
-                          : "border-border hover:border-primary text-muted-foreground"
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
+                  {["rust", "go", "typescript", "python", "sql", "java"].map(
+                    (lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => setActiveTheme(lang as ThemeKey)}
+                        className={`px-2 py-1 text-xs font-mono border rounded transition-all duration-300 cursor-pointer ${
+                          activeTheme === lang
+                            ? "border-primary bg-primary/20 text-primary"
+                            : "border-border hover:border-primary text-muted-foreground"
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 {/* Dark/Light theme toggle */}
@@ -94,13 +96,17 @@ export default function BlogPage() {
 
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light">
-                <span className="text-primary font-mono text-xl sm:text-2xl lg:text-3xl">{theme.sectionPrefix}</span>
+                <span className="text-primary font-mono text-xl sm:text-2xl lg:text-3xl">
+                  {theme.sectionPrefix}
+                </span>
                 thoughts
-                <span className="text-primary font-mono">{theme.sectionSuffix}</span>
+                <span className="text-primary font-mono">
+                  {theme.sectionSuffix}
+                </span>
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
-                Writing about systems programming, fullstack development, performance optimization, and building
-                reliable software.
+                Writing about systems programming, fullstack development,
+                performance optimization, and building reliable software.
               </p>
             </div>
           </div>
@@ -112,17 +118,24 @@ export default function BlogPage() {
                 key={index}
                 className="group p-4 sm:p-6 lg:p-8 border border-border rounded-lg hover:border-primary hover:bg-card/50 transition-all duration-500"
               >
-                <Link href={`/blog/${post.slug}`} className="space-y-3 sm:space-y-4 block">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="space-y-3 sm:space-y-4 block"
+                >
                   <div className="flex items-center justify-between text-xs font-mono flex-wrap gap-2">
                     <span className="text-primary">{post.date}</span>
-                    <span className="text-muted-foreground">{post.readTime}</span>
+                    <span className="text-muted-foreground">
+                      {post.readTime}
+                    </span>
                   </div>
 
                   <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium group-hover:text-primary transition-colors duration-300">
                     {post.title}
                   </h2>
 
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{post.excerpt}</p>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    {post.excerpt}
+                  </p>
 
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex flex-wrap gap-2">
@@ -137,7 +150,7 @@ export default function BlogPage() {
                     </div>
 
                     <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-primary">
-                      <span>{theme.readFunc}</span>
+                      <span>{theme.resumeFunc}</span>
                       <svg
                         className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300"
                         fill="none"
@@ -160,5 +173,5 @@ export default function BlogPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
