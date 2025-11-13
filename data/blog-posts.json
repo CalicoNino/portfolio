@@ -7,23 +7,5 @@
     "updatedAt": "2024-01-15",
     "readTime": "5 min read",
     "tags": ["AI", "SDK", "Development"]
-  },
-  {
-    "slug": "design-systems-at-scale",
-    "title": "Design Systems at Scale",
-    "excerpt": "Lessons learned building and maintaining design systems for large-scale applications.",
-    "date": "2024-01-10",
-    "updatedAt": "2024-01-12",
-    "readTime": "8 min read",
-    "tags": ["Design", "Frontend", "Scale"]
-  },
-  {
-    "slug": "performance-first-development",
-    "title": "Performance-First Development",
-    "excerpt": "Why performance should be a priority from day one and how to measure what matters.",
-    "date": "2024-01-05",
-    "updatedAt": "2024-01-08",
-    "readTime": "6 min read",
-    "tags": ["Performance", "Web", "Optimization"]
   }
 ]

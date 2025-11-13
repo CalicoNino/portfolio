@@ -1,8 +1,8 @@
 [
   {
     "year": "2023",
-    "role": "Full Stack Software Developer - Cloud Team",
-    "company": "Siemens | Enlighted Inc",
+    "role": "Full Stack Software Developer",
+    "company": "Siemens | Enlighted Inc - Cloud Team",
     "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
     "tech": [
       "TypeScript",
@@ -19,8 +19,8 @@
   },
   {
     "year": "2023",
-    "role": "Full Stack Software Developer - Occupancy Insights Team",
-    "company": "Siemens | Enlighted Inc",
+    "role": "Full Stack Software Developer",
+    "company": "Siemens | Enlighted Inc - Occupancy Insights Team",
     "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
     "tech": [
       "TypeScript",
@@ -37,8 +37,8 @@
   },
   {
     "year": "2021-2023",
-    "role": "Full Stack Software Developer - HiFive Team",
-    "company": "Siemans | Enlighted Inc",
+    "role": "Full Stack Software Developer",
+    "company": "Siemans | Enlighted Inc - HiFive Team",
     "description": "Developed hybrid workplace assistant with 12% signup growth. Built Slack chatbot with 17% engagement boost. Architected microservices reducing latency by 40% and CI/CD from 20min to 6min.",
     "tech": [
       "TypeScript",
