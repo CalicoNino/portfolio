@@ -1,0 +1,313 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Updated to Miami sunset colors with more red/orange tones, less purple */
+  --background: oklch(0.99 0.01 40);
+  --foreground: oklch(0.25 0.02 30);
+  --card: oklch(0.99 0.01 40);
+  --card-foreground: oklch(0.25 0.02 30);
+  --popover: oklch(0.99 0.01 40);
+  --popover-foreground: oklch(0.25 0.02 30);
+  --primary: oklch(0.68 0.25 35); /* coral-orange */
+  --primary-foreground: oklch(0.99 0.01 40);
+  --secondary: oklch(0.95 0.03 40);
+  --secondary-foreground: oklch(0.25 0.02 30);
+  --muted: oklch(0.95 0.03 40);
+  --muted-foreground: oklch(0.55 0.05 30);
+  --accent: oklch(0.65 0.28 15); /* red-orange accent */
+  --accent-foreground: oklch(0.99 0.01 40);
+  --destructive: oklch(0.6 0.25 30);
+  --destructive-foreground: oklch(0.99 0.01 40);
+  --border: oklch(0.9 0.02 40);
+  --input: oklch(0.9 0.02 40);
+  --ring: oklch(0.68 0.25 35);
+  --chart-1: oklch(0.68 0.25 35);
+  --chart-2: oklch(0.65 0.28 15);
+  --chart-3: oklch(0.72 0.2 50);
+  --chart-4: oklch(0.7 0.26 25);
+  --chart-5: oklch(0.75 0.18 45);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.99 0.01 40);
+  --sidebar-foreground: oklch(0.25 0.02 30);
+  --sidebar-primary: oklch(0.68 0.25 35);
+  --sidebar-primary-foreground: oklch(0.99 0.01 40);
+  --sidebar-accent: oklch(0.95 0.03 40);
+  --sidebar-accent-foreground: oklch(0.25 0.02 30);
+  --sidebar-border: oklch(0.9 0.02 40);
+  --sidebar-ring: oklch(0.68 0.25 35);
+
+  /* Added dynamic background gradient colors */
+  --bg-1: oklch(0.7 0.26 25 / 0.15);
+  --bg-2: oklch(0.68 0.25 35 / 0.15);
+  --bg-3: oklch(0.65 0.28 15 / 0.1);
+}
+
+.dark {
+  /* Dark mode with sunset colors - warm oranges and reds */
+  --background: oklch(0.15 0.02 30);
+  --foreground: oklch(0.97 0.01 40);
+  --card: oklch(0.2 0.02 30);
+  --card-foreground: oklch(0.97 0.01 40);
+  --popover: oklch(0.2 0.02 30);
+  --popover-foreground: oklch(0.97 0.01 40);
+  --primary: oklch(0.7 0.26 25); /* warm coral-red */
+  --primary-foreground: oklch(0.15 0.02 30);
+  --secondary: oklch(0.25 0.02 30);
+  --secondary-foreground: oklch(0.97 0.01 40);
+  --muted: oklch(0.25 0.02 30);
+  --muted-foreground: oklch(0.6 0.05 340);
+  --accent: oklch(0.68 0.25 35); /* orange accent */
+  --accent-foreground: oklch(0.97 0.01 40);
+  --destructive: oklch(0.6 0.25 30);
+  --destructive-foreground: oklch(0.99 0.01 40);
+  --border: oklch(0.28 0.02 30);
+  --input: oklch(0.28 0.02 30);
+  --ring: oklch(0.7 0.26 25);
+  --chart-1: oklch(0.7 0.26 25);
+  --chart-2: oklch(0.68 0.25 35);
+  --chart-3: oklch(0.72 0.2 50);
+  --chart-4: oklch(0.75 0.22 15);
+  --chart-5: oklch(0.75 0.18 45);
+  --sidebar: oklch(0.2 0.02 30);
+  --sidebar-foreground: oklch(0.97 0.01 40);
+  --sidebar-primary: oklch(0.7 0.26 25);
+  --sidebar-primary-foreground: oklch(0.15 0.02 30);
+  --sidebar-accent: oklch(0.25 0.02 30);
+  --sidebar-accent-foreground: oklch(0.97 0.01 40);
+  --sidebar-border: oklch(0.28 0.02 30);
+  --sidebar-ring: oklch(0.7 0.26 25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Enhanced staggered animations with blur effects for depth */
+  .animate-fade-in-stagger-1 {
+    animation: fade-in-up-blur 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-stagger-2 {
+    animation: fade-in-up-blur 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-stagger-3 {
+    animation: fade-in-up-blur 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-stagger-4 {
+    animation: fade-in-up-blur 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+    opacity: 0;
+  }
+
+  @keyframes fade-in-up-blur {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  /* Added sophisticated parallax scrolling effect */
+  .parallax-slow {
+    transform: translateY(calc(var(--scroll-y, 0) * 0.5px));
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .parallax-fast {
+    transform: translateY(calc(var(--scroll-y, 0) * 1.5px));
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Enhanced floating animation with rotation for more natural movement */
+  .animate-float {
+    animation: float-rotate 8s ease-in-out infinite;
+  }
+
+  @keyframes float-rotate {
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-15px) rotate(5deg);
+    }
+    50% {
+      transform: translateY(-25px) rotate(0deg);
+    }
+    75% {
+      transform: translateY(-15px) rotate(-5deg);
+    }
+  }
+
+  /* Added magnetic hover effect for interactive elements */
+  .magnetic-hover {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .magnetic-hover:hover {
+    transform: scale(1.05) translateZ(0);
+  }
+
+  /* Enhanced pulse glow with breathing effect */
+  .animate-pulse-glow {
+    animation: pulse-glow-breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow-breathe {
+    0%,
+    100% {
+      box-shadow: 0 0 20px -5px oklch(0.68 0.25 35 / 0.3), 0 0 40px -10px oklch(0.68 0.25 35 / 0.2);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 30px 0px oklch(0.68 0.25 35 / 0.5), 0 0 60px 0px oklch(0.68 0.25 35 / 0.3);
+      transform: scale(1.02);
+    }
+  }
+
+  /* Added shimmer effect for text highlights */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, oklch(0.68 0.25 35 / 0.3) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Enhanced gradient mesh with more dynamic movement */
+  .gradient-mesh {
+    background: radial-gradient(at 20% 30%, var(--bg-1) 0px, transparent 50%),
+      radial-gradient(at 80% 70%, var(--bg-2) 0px, transparent 50%),
+      radial-gradient(at 40% 80%, var(--bg-3) 0px, transparent 50%),
+      radial-gradient(at 60% 20%, var(--bg-1) 0px, transparent 40%);
+    animation: gradient-shift-dynamic 20s ease infinite;
+  }
+
+  @keyframes gradient-shift-dynamic {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(1) rotate(0deg);
+    }
+    25% {
+      opacity: 0.6;
+      transform: scale(1.05) rotate(1deg);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.1) rotate(0deg);
+    }
+    75% {
+      opacity: 0.6;
+      transform: scale(1.05) rotate(-1deg);
+    }
+  }
+
+  /* Added glass morphism effect for modern cards */
+  .glass-card {
+    background: oklch(from var(--card) l c h / 0.7);
+    backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid oklch(from var(--border) l c h / 0.3);
+  }
+
+  /* Added text gradient effect for emphasis */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Added smooth scroll reveal animation */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .syntax-highlight {
+    @apply font-mono text-sm;
+  }
+}
