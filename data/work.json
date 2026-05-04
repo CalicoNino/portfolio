@@ -1,6 +1,6 @@
 [
   {
-    "year": "2023",
+    "year": "'23",
     "role": "Full Stack Software Developer",
     "company": "Siemens | Enlighted Inc - Cloud Team",
     "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
@@ -18,7 +18,7 @@
     "stats": "Real-time insights"
   },
   {
-    "year": "2023",
+    "year": "'23",
     "role": "Full Stack Software Developer",
     "company": "Siemens | Enlighted Inc - Occupancy Insights Team",
     "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
@@ -36,7 +36,7 @@
     "stats": "Real-time insights"
   },
   {
-    "year": "2021-2023",
+    "year": "'21-'23",
     "role": "Full Stack Software Developer",
     "company": "Siemans | Enlighted Inc - HiFive Team",
     "description": "Developed hybrid workplace assistant with 12% signup growth. Built Slack chatbot with 17% engagement boost. Architected microservices reducing latency by 40% and CI/CD from 20min to 6min.",
@@ -55,7 +55,7 @@
     "stats": "40% faster"
   },
   {
-    "year": "2023",
+    "year": "'23",
     "role": "Full Stack Software Developer",
     "company": "InheritChain",
     "description": "Implemented AWS Cognito identity management. Built REST APIs and auth systems for legal tech client.",
@@ -84,7 +84,7 @@
     "stats": "CVE-2016-10190"
   },
   {
-    "year": "2020",
+    "year": "'20",
     "role": "Security Software Developer",
     "company": "BlackBerry QNX",
     "description": "Built Python test suite for QNX OS security. Integrated OpenSSL achieving 25% performance gain. Optimized CI/CD reducing deployment by 30%.",
@@ -100,7 +100,7 @@
     "stats": "25% faster"
   },
   {
-    "year": "2019",
+    "year": "'19",
     "role": "Cybersecurity Analyst",
     "company": "Canadian Natural Resources Limited",
     "description": "Built phishing awareness tool for 15k employees. Managed security scans and firewalls for compliance.",

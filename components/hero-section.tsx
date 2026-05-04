@@ -1,4 +1,3 @@
-"use client";
 
 import type React from "react";
 import { themes, type ThemeKey } from "@/lib/themes";
@@ -39,7 +38,7 @@ export function HeroSection({
       className="min-h-screen flex items-center opacity-0 relative"
     >
       <div className="grid lg:grid-cols-5 gap-12 sm:gap-16 w-full relative">
-        <div className="lg:col-span-3 space-y-6 sm:space-y-8">
+        <div className="lg:col-span-3 space-y-6 sm:space-y-8 bg-background/30 backdrop-blur-md rounded-2xl p-5 sm:p-7">
           <div className="space-y-4">
             <div className="text-xs font-mono text-primary tracking-wider animate-fade-in-stagger-1">
               <span className="text-muted-foreground">{theme.comment} </span>
@@ -193,7 +192,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 p-4 border border-border rounded-lg bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-500">
             <div className="text-xs text-primary font-mono">
               {theme.comment}* STACK *{theme.comment}
             </div>

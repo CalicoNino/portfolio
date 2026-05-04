@@ -1,5 +1,5 @@
 import type React from "react";
-import Link from "next/link";
+
 import projectsData from "@/data/projects.json";
 import { themes, type ThemeKey } from "@/lib/themes";
 import { ArrowRightIcon } from "@/components/icons/arrow-right-icon";
@@ -41,9 +41,11 @@ export const ProjectsSection = ({
 
         <div className="grid gap-6 lg:grid-cols-2">
           {projectsData.map((project, index) => (
-            <Link
+            <a
               key={index}
               href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group relative overflow-hidden p-6 border border-border rounded-lg bg-card/30 backdrop-blur-sm hover:border-primary hover:bg-card/60 hover:shadow-[0_8px_30px_oklch(0.68_0.25_35/0.15)] hover:-translate-y-1 transition-all duration-500 cursor-pointer"
             >
               <div
@@ -84,7 +86,7 @@ export const ProjectsSection = ({
                   <ArrowRightIcon className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" />
                 </div>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
 

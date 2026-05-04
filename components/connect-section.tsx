@@ -1,5 +1,5 @@
 import type React from "react";
-import Link from "next/link";
+
 import personalData from "@/data/personal.json";
 import { themes, type ThemeKey } from "@/lib/themes";
 import { ArrowRightIcon } from "@/components/icons/arrow-right-icon";
@@ -52,7 +52,7 @@ export const ConnectSection = ({
           </p>
 
           <div className="space-y-4">
-            <Link
+            <a
               href={`mailto:${personalData.email}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -60,7 +60,7 @@ export const ConnectSection = ({
             >
               <span className="text-base sm:text-lg">{personalData.email}</span>
               <ArrowRightIcon className="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-300" />
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -89,9 +89,11 @@ export const ConnectSection = ({
               url: personalData.social.twitter,
             },
           ].map((social) => (
-            <Link
+            <a
               key={social.name}
               href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group p-4 border border-border rounded-lg bg-card/30 backdrop-blur-sm hover:border-primary hover:bg-card/60 hover:shadow-[0_8px_30px_oklch(0.68_0.25_35/0.15)] hover:-translate-y-1 transition-all duration-500 cursor-pointer"
             >
               <div className="space-y-2">
@@ -102,7 +104,7 @@ export const ConnectSection = ({
                   {social.handle}
                 </div>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </div>

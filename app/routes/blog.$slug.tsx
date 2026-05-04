@@ -1,46 +1,48 @@
-"use client"
+import { Link, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
+import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { themes, type ThemeKey } from "@/lib/themes";
+import { PirateIcon } from "@/components/icons/pirate-icon";
+import { SunIcon } from "@/components/icons/sun-icon";
+import { MoonIcon } from "@/components/icons/moon-icon";
+import { GridIcon } from "@/components/icons/grid-icon";
+import { getPostBySlug } from "@/lib/blog";
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import ReactMarkdown from "react-markdown"
-import { themes, type ThemeKey } from "@/lib/themes"
-import { PirateIcon } from "@/components/icons/pirate-icon"
-import { SunIcon } from "@/components/icons/sun-icon"
-import { MoonIcon } from "@/components/icons/moon-icon"
-import { GridIcon } from "@/components/icons/grid-icon"
-import blogPostsData from "@/data/blog-posts.json"
+export async function loader({ params }: LoaderFunctionArgs) {
+  const post = params.slug ? getPostBySlug(params.slug) : null;
+  return post;
+}
 
-export default function BlogPost({ params }: { params: { slug: string } }) {
-  const { slug } = params
-  const post = blogPostsData.find((p) => p.slug === slug)
-
-  const [isDark, setIsDark] = useState(true)
-  const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust")
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark)
-  }, [isDark])
+export default function BlogPost() {
+  const post = useLoaderData<typeof loader>();
+  const [isDark, setIsDark] = useState(true);
+  const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust");
 
   useEffect(() => {
-    const theme = themes[activeTheme]
-    const root = document.documentElement
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
+  useEffect(() => {
+    const theme = themes[activeTheme];
+    const root = document.documentElement;
 
     if (isDark) {
-      root.style.setProperty("--primary", theme.colors.primaryDark)
-      root.style.setProperty("--accent", theme.colors.accentDark)
+      root.style.setProperty("--primary", theme.colors.primaryDark);
+      root.style.setProperty("--accent", theme.colors.accentDark);
     } else {
-      root.style.setProperty("--primary", theme.colors.primary)
-      root.style.setProperty("--accent", theme.colors.accent)
+      root.style.setProperty("--primary", theme.colors.primary);
+      root.style.setProperty("--accent", theme.colors.accent);
     }
 
-    root.style.setProperty("--bg-1", theme.colors.bg1)
-    root.style.setProperty("--bg-2", theme.colors.bg2)
-    root.style.setProperty("--bg-3", theme.colors.bg3)
-  }, [activeTheme, isDark])
+    root.style.setProperty("--bg-1", theme.colors.bg1);
+    root.style.setProperty("--bg-2", theme.colors.bg2);
+    root.style.setProperty("--bg-3", theme.colors.bg3);
+  }, [activeTheme, isDark]);
 
   const toggleTheme = () => {
-    setIsDark(!isDark)
-  }
+    setIsDark(!isDark);
+  };
 
   if (!post) {
     return (
@@ -48,32 +50,13 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-mono text-primary">404</h1>
           <p className="text-muted-foreground">Blog post not found</p>
-          <Link href="/blog" className="text-primary hover:text-accent font-mono">
+          <Link to="/blog" className="text-primary hover:text-accent font-mono">
             ← back to blog
           </Link>
         </div>
       </div>
-    )
+    );
   }
-
-  const markdownContent = `
-# ${post.title}
-
-${post.excerpt}
-
-## Introduction
-
-This is sample content. You can replace this with actual markdown content or fetch it from an API.
-
-\`\`\`typescript
-const example = "Hello World";
-// console.log(example); // Removed debug console.log statement
-\`\`\`
-
-## More Details
-
-Add your actual blog content here!
-  `
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -84,7 +67,7 @@ Add your actual blog content here!
             <div className="flex items-center gap-3">
               <div className="relative group">
                 <Link
-                  href="/"
+                  to="/"
                   className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
                   aria-label="Go to home"
                 >
@@ -96,7 +79,7 @@ Add your actual blog content here!
               </div>
               <div className="relative group">
                 <Link
-                  href="/blog"
+                  to="/blog"
                   className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
                   aria-label="View all blogs"
                 >
@@ -109,7 +92,6 @@ Add your actual blog content here!
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              {/* Language theme switcher */}
               <div className="flex gap-1.5 sm:gap-2 flex-wrap">
                 {["rust", "go", "typescript", "python", "sql", "java"].map((lang) => (
                   <button
@@ -126,7 +108,6 @@ Add your actual blog content here!
                 ))}
               </div>
 
-              {/* Dark/Light theme toggle */}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg border border-border hover:border-primary hover:bg-primary/10 transition-all duration-300 cursor-pointer"
@@ -180,7 +161,7 @@ Add your actual blog content here!
               ),
               p: ({ children }) => <p className="text-muted-foreground leading-relaxed mb-6">{children}</p>,
               code: ({ children, className }) => {
-                const isBlock = className?.includes("language-")
+                const isBlock = className?.includes("language-");
                 return isBlock ? (
                   <code className="block bg-card border border-border rounded-lg p-4 my-6 overflow-x-auto font-mono text-sm text-foreground">
                     {children}
@@ -189,7 +170,7 @@ Add your actual blog content here!
                   <code className="bg-card border border-border rounded px-2 py-0.5 font-mono text-sm text-accent">
                     {children}
                   </code>
-                )
+                );
               },
               pre: ({ children }) => <div className="my-6">{children}</div>,
               ul: ({ children }) => (
@@ -217,7 +198,7 @@ Add your actual blog content here!
               ),
             }}
           >
-            {markdownContent}
+            {post.content}
           </ReactMarkdown>
         </div>
 
@@ -226,7 +207,7 @@ Add your actual blog content here!
           <div className="flex items-center gap-3">
             <div className="relative group">
               <Link
-                href="/"
+                to="/"
                 className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
                 aria-label="Go to home"
               >
@@ -238,7 +219,7 @@ Add your actual blog content here!
             </div>
             <div className="relative group">
               <Link
-                href="/blog"
+                to="/blog"
                 className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
                 aria-label="View all blogs"
               >
@@ -252,5 +233,5 @@ Add your actual blog content here!
         </div>
       </article>
     </div>
-  )
+  );
 }
