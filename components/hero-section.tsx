@@ -42,19 +42,19 @@ export function HeroSection({
           <div className="space-y-4">
             <div className="text-xs font-mono text-primary tracking-wider animate-fade-in-stagger-1">
               <span className="text-muted-foreground">{theme.comment} </span>
-              FULLSTACK DEVELOPER
+              SOFTWARE ENGINEER
             </div>
             <div className="space-y-4 animate-fade-in-stagger-2">
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight flex flex-row items-baseline gap-2">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight flex flex-row flex-wrap items-baseline gap-x-1.5 gap-y-0">
                 <span className="text-primary font-mono text-xs opacity-60 whitespace-nowrap">
                   {theme.title}
                 </span>
-                <p className="whitespace-nowrap">
+                <span className="whitespace-nowrap">
                   {personalData.name.split(" ")[0]}{" "}
                   <span className="text-muted-foreground">
                     {personalData.name.split(" ")[1]}
                   </span>
-                </p>
+                </span>
                 <span className="text-primary font-mono text-xs opacity-60 whitespace-nowrap">
                   {theme.closing}
                 </span>
