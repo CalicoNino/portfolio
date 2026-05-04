@@ -1,5 +1,13 @@
 import { Link } from "react-router";
+import type { MetaFunction } from "react-router";
 import { useEffect, useState } from "react";
+
+export const meta: MetaFunction = () => [
+  { title: "Thoughts | Calico Nino" },
+  { name: "description", content: "Writing about code, systems, history, and whatever else is on my mind." },
+  { property: "og:title", content: "Thoughts | Calico Nino" },
+  { property: "og:description", content: "Writing about code, systems, history, and whatever else is on my mind." },
+];
 import { themes, type ThemeKey } from "@/lib/themes";
 import { PirateIcon } from "@/components/icons/pirate-icon";
 import { SunIcon } from "@/components/icons/sun-icon";

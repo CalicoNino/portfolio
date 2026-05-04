@@ -1,0 +1,21 @@
+{
+  "name": "Calico Nino",
+  "short_name": "Calico",
+  "description": "Full-stack developer specializing in Rust, Go, TypeScript, and Python.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0f0a",
+  "theme_color": "#1a0f0a",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

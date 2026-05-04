@@ -1,5 +1,5 @@
 import { Link, useLoaderData } from "react-router";
-import type { LoaderFunctionArgs } from "react-router";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { themes, type ThemeKey } from "@/lib/themes";
@@ -13,6 +13,19 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const post = params.slug ? getPostBySlug(params.slug) : null;
   return post;
 }
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data) return [{ title: "Post Not Found | Calico Nino" }];
+  return [
+    { title: `${data.title} | Calico Nino` },
+    { name: "description", content: data.excerpt },
+    { property: "og:title", content: `${data.title} | Calico Nino` },
+    { property: "og:description", content: data.excerpt },
+    { property: "og:type", content: "article" },
+    { name: "twitter:title", content: `${data.title} | Calico Nino` },
+    { name: "twitter:description", content: data.excerpt },
+  ];
+};
 
 export default function BlogPost() {
   const post = useLoaderData<typeof loader>();

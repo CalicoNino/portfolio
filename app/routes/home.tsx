@@ -14,11 +14,11 @@ import personalData from "@/data/personal.json";
 import workData from "@/data/work.json";
 
 const Home = () => {
-  const [isDark,       setIsDark]       = useState(true);
-  const [isPlaying,    setIsPlaying]    = useState(false);
+  const [isDark, setIsDark] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [activeTheme,  setActiveTheme]  = useState<ThemeKey>("rust");
+  const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust");
   const sectionsRef = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
@@ -27,13 +27,13 @@ const Home = () => {
 
   useEffect(() => {
     const theme = themes[activeTheme];
-    const root  = document.documentElement;
+    const root = document.documentElement;
     if (isDark) {
       root.style.setProperty("--primary", theme.colors.primaryDark);
-      root.style.setProperty("--accent",  theme.colors.accentDark);
+      root.style.setProperty("--accent", theme.colors.accentDark);
     } else {
       root.style.setProperty("--primary", theme.colors.primary);
-      root.style.setProperty("--accent",  theme.colors.accent);
+      root.style.setProperty("--accent", theme.colors.accent);
     }
     root.style.setProperty("--bg-1", theme.colors.bg1);
     root.style.setProperty("--bg-2", theme.colors.bg2);
@@ -57,26 +57,29 @@ const Home = () => {
           }
         });
       },
-      { threshold: 0.3, rootMargin: "0px 0px -20% 0px" }
+      { threshold: 0.3, rootMargin: "0px 0px -20% 0px" },
     );
-    sectionsRef.current.forEach((s) => { if (s) observer.observe(s); });
+    sectionsRef.current.forEach((s) => {
+      if (s) observer.observe(s);
+    });
     return () => observer.disconnect();
   }, []);
 
   // Lock body scroll while the game is active
   useEffect(() => {
     document.body.style.overflow = isPlaying ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isPlaying]);
 
   const toggleTheme = () => setIsDark((d) => !d);
   const switchTheme = (theme: ThemeKey) => setActiveTheme(theme);
-  const enterPlay   = () => setIsPlaying(true);
-  const exitPlay    = () => setIsPlaying(false);
+  const enterPlay = () => setIsPlaying(true);
+  const exitPlay = () => setIsPlaying(false);
 
   return (
     <div className="min-h-screen text-foreground relative overflow-hidden">
-
       {/* ── Sailing game — always renders in the background ─────────────── */}
       <PirateSailingGame playMode={isPlaying} onExitPlay={exitPlay} />
 
@@ -85,10 +88,10 @@ const Home = () => {
         onClick={enterPlay}
         className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 rounded-full bg-black/60 backdrop-blur-md border border-white/25 text-white text-sm font-mono hover:bg-white/10 hover:border-white/50 transition-all duration-300 cursor-pointer"
         style={{
-          opacity:       isPlaying ? 0 : 1,
+          opacity: isPlaying ? 0 : 1,
           pointerEvents: isPlaying ? "none" : "auto",
-          transform:     `translateX(-50%) translateY(${isPlaying ? "8px" : "0px"})`,
-          transition:    "opacity 0.4s ease, transform 0.4s ease",
+          transform: `translateX(-50%) translateY(${isPlaying ? "8px" : "0px"})`,
+          transition: "opacity 0.4s ease, transform 0.4s ease",
         }}
       >
         <span className="text-base">⛵</span>
@@ -99,20 +102,23 @@ const Home = () => {
       <div
         className="transition-opacity duration-700"
         style={{
-          opacity:       isPlaying ? 0 : 1,
+          opacity: isPlaying ? 0 : 1,
           pointerEvents: isPlaying ? "none" : "auto",
-          willChange:    "opacity",
+          willChange: "opacity",
         }}
       >
         {/* Dark tint + quicker fade to solid background so content is always legible */}
         <div
-          className="fixed inset-0 pointer-events-none"
+          className="fixed inset-0 pointer-events-none h-full w-full"
           style={{
             zIndex: -5,
             background: `linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.35) 35vh, var(--background) 65vh)`,
           }}
         />
-        <div className="fixed inset-0 gradient-mesh pointer-events-none" style={{ opacity: 0.25 }} />
+        <div
+          className="fixed inset-0 gradient-mesh pointer-events-none"
+          style={{ opacity: 0.25 }}
+        />
         <div
           className="fixed inset-0 opacity-15 pointer-events-none transition-opacity duration-300 z-0"
           style={{
@@ -126,26 +132,45 @@ const Home = () => {
           className="fixed top-5 right-5 z-50 p-2.5 rounded-lg border border-border bg-card/60 backdrop-blur-sm hover:border-primary hover:bg-primary/10 transition-all duration-300 cursor-pointer"
           aria-label="Toggle theme"
         >
-          {isDark
-            ? <SunIcon  className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-            : <MoonIcon className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-          }
+          {isDark ? (
+            <SunIcon className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
+          ) : (
+            <MoonIcon className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
+          )}
         </button>
 
         <ScrollIndicator activeSection={activeSection} />
 
-        <main className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-16 relative z-10 pt-8 sm:pt-0 backdrop-blur-[2px]">
-          <HeroSection
-            personalData={personalData}
-            activeTheme={activeTheme}
-            switchTheme={switchTheme}
-            sectionsRef={sectionsRef}
-          />
-          <WorkSection    workData={workData} activeTheme={activeTheme} sectionsRef={sectionsRef} />
-          <ProjectsSection activeTheme={activeTheme} sectionsRef={sectionsRef} />
-          <ThoughtsSection activeTheme={activeTheme} sectionsRef={sectionsRef} />
-          <ConnectSection  activeTheme={activeTheme} sectionsRef={sectionsRef} />
-          <Footer isDark={isDark} toggleTheme={toggleTheme} onSailClick={enterPlay} />
+        <div className="fixed inset-0 backdrop-blur-[2px] pointer-events-none" />
+        <main className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-16 relative z-10 pt-8 sm:pt-0">
+            <HeroSection
+              personalData={personalData}
+              activeTheme={activeTheme}
+              switchTheme={switchTheme}
+              sectionsRef={sectionsRef}
+            />
+            <WorkSection
+              workData={workData}
+              activeTheme={activeTheme}
+              sectionsRef={sectionsRef}
+            />
+            <ProjectsSection
+              activeTheme={activeTheme}
+              sectionsRef={sectionsRef}
+            />
+            <ThoughtsSection
+              activeTheme={activeTheme}
+              sectionsRef={sectionsRef}
+            />
+            <ConnectSection
+              activeTheme={activeTheme}
+              sectionsRef={sectionsRef}
+            />
+            <Footer
+              isDark={isDark}
+              toggleTheme={toggleTheme}
+              onSailClick={enterPlay}
+            />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-background via-background/80 to-transparent pointer-events-none z-20" />
