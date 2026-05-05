@@ -8,13 +8,11 @@ import { ThoughtsSection } from "@/components/thoughts-section";
 import { ConnectSection } from "@/components/connect-section";
 import { Footer } from "@/components/footer";
 import { PirateSailingGame } from "@/components/pirate-sailing-game";
-import { SunIcon } from "@/components/icons/sun-icon";
-import { MoonIcon } from "@/components/icons/moon-icon";
 import personalData from "@/data/personal.json";
 import workData from "@/data/work.json";
 
 const Home = () => {
-  const [isDark, setIsDark] = useState(true);
+  const isDark = true;
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -22,8 +20,8 @@ const Home = () => {
   const sectionsRef = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
+    document.documentElement.classList.add("dark");
+  }, []);
 
   useEffect(() => {
     const theme = themes[activeTheme];
@@ -73,7 +71,6 @@ const Home = () => {
     };
   }, [isPlaying]);
 
-  const toggleTheme = () => setIsDark((d) => !d);
   const switchTheme = (theme: ThemeKey) => setActiveTheme(theme);
   const enterPlay = () => setIsPlaying(true);
   const exitPlay = () => setIsPlaying(false);
@@ -86,7 +83,7 @@ const Home = () => {
       {/* ── "Set Sail" CTA — fixed button, own fade so it doesn't compete with overlay timing ── */}
       <button
         onClick={enterPlay}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 rounded-full bg-black/60 backdrop-blur-md border border-white/25 text-white text-sm font-mono hover:bg-white/10 hover:border-white/50 transition-all duration-300 cursor-pointer"
+        className="fixed bottom-10 left-1/2 z-40 flex items-center gap-2 px-6 py-3 rounded-full bg-black/60 backdrop-blur-md border border-white/25 text-white text-sm font-mono hover:bg-white/10 hover:border-white/50 transition-all duration-300 cursor-pointer"
         style={{
           opacity: isPlaying ? 0 : 1,
           pointerEvents: isPlaying ? "none" : "auto",
@@ -126,19 +123,6 @@ const Home = () => {
           }}
         />
 
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="fixed top-5 right-5 z-50 p-2.5 rounded-lg border border-border bg-card/60 backdrop-blur-sm hover:border-primary hover:bg-primary/10 transition-all duration-300 cursor-pointer"
-          aria-label="Toggle theme"
-        >
-          {isDark ? (
-            <SunIcon className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-          ) : (
-            <MoonIcon className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-          )}
-        </button>
-
         <ScrollIndicator activeSection={activeSection} />
 
         <div className="fixed inset-0 backdrop-blur-[2px] pointer-events-none" />
@@ -166,11 +150,7 @@ const Home = () => {
               activeTheme={activeTheme}
               sectionsRef={sectionsRef}
             />
-            <Footer
-              isDark={isDark}
-              toggleTheme={toggleTheme}
-              onSailClick={enterPlay}
-            />
+            <Footer onSailClick={enterPlay} />
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-background via-background/80 to-transparent pointer-events-none z-20" />
