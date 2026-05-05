@@ -1,4 +1,4 @@
-# caliconino.github.io/portfolio
+# caliconino.dev
 
 > *I turn `unwrap()` calls into `Result<features, code>`.*
 
