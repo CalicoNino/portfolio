@@ -35,7 +35,7 @@ export function HeroSection({
       ref={(el) => {
         sectionsRef.current[0] = el;
       }}
-      className="min-h-screen flex items-center opacity-0 relative"
+      className="sm:min-h-screen flex items-center opacity-0 relative py-16 sm:py-0"
     >
       <div className="grid lg:grid-cols-5 gap-12 sm:gap-16 w-full relative">
         <div className="lg:col-span-3 space-y-6 sm:space-y-8 bg-background/30 backdrop-blur-md rounded-2xl p-5 sm:p-7">

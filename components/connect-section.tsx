@@ -18,7 +18,7 @@ export const ConnectSection = ({
     ref={(el) => {
       sectionsRef.current[4] = el;
     }}
-    className="py-20 sm:py-32 opacity-0"
+    className="py-16 sm:py-20 lg:py-32 opacity-0"
   >
     <div className="grid lg:grid-cols-2 gap-12 sm:gap-16">
       <div className="space-y-6 sm:space-y-8">

@@ -41,6 +41,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const touchKeysRef  = useRef(new Set<string>());
   const playModeRef   = useRef(playMode);
   const helmDragRef   = useRef({ active: false, prevX: 0, delta: 0, startX: 0, startY: 0, curX: 0, curY: 0, isTouch: false });
+  const canvasDragRef = useRef({ active: false, startX: 0, startY: 0, curX: 0, curY: 0 });
 
   const [todUI,      setTodUI]      = useState<TimeOfDay>("day");
   const [wxUI,       setWxUI]       = useState<Weather>("calm");
@@ -49,6 +50,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const [speedPct,   setSpeedPct]   = useState(0);
   const [loaded,     setLoaded]     = useState(false);
   const [errMsg,     setErrMsg]     = useState<string | null>(null);
+  const [canvasJoystick, setCanvasJoystick] = useState<{ cx: number; cy: number; x: number; y: number } | null>(null);
 
   const todRef = useRef<TimeOfDay>("day");
   const wxRef  = useRef<Weather>("calm");
@@ -528,13 +530,21 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           const prevX = ship.position.x, prevZ = ship.position.z;
 
           if (playModeRef.current) {
-            // Joystick: sync touch drag vertical axis into virtual keys before reading inputs
-            const drag = helmDragRef.current;
+            const drag       = helmDragRef.current;
+            const canvasDrag = canvasDragRef.current;
+
+            // Sync vertical joystick axis into virtual throttle keys (helm takes priority)
             if (drag.active && drag.isTouch) {
               const yOff = drag.curY - drag.startY;
               const tk = touchKeysRef.current;
               if (yOff < -12) { tk.add('ArrowUp');   tk.delete('ArrowDown'); }
               else if (yOff > 12) { tk.add('ArrowDown'); tk.delete('ArrowUp'); }
+              else { tk.delete('ArrowUp'); tk.delete('ArrowDown'); }
+            } else if (canvasDrag.active) {
+              const yOff = canvasDrag.curY - canvasDrag.startY;
+              const tk = touchKeysRef.current;
+              if (yOff < -15) { tk.add('ArrowUp');   tk.delete('ArrowDown'); }
+              else if (yOff > 15) { tk.add('ArrowDown'); tk.delete('ArrowUp'); }
               else { tk.delete('ArrowUp'); tk.delete('ArrowDown'); }
             }
 
@@ -553,16 +563,14 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             if (left) shipAngle += turn;
             if (rgt)  shipAngle -= turn;
 
-            // Helm wheel — drag steering takes priority over keys
+            // Steering: helm drag > canvas drag > keys
             if (drag.active) {
               if (drag.isTouch) {
-                // Joystick: steer proportional to horizontal offset from touch-down point
                 const xOff = drag.curX - drag.startX;
                 const steerRate = Math.max(-1, Math.min(1, xOff / 55));
                 if (Math.abs(xOff) > 8) shipAngle -= steerRate * turn;
                 helmAngle += (steerRate * 80 - helmAngle) * 0.2;
               } else {
-                // Desktop: velocity-based drag
                 if (drag.delta !== 0) {
                   const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
                   shipAngle -= dragRate * turn;
@@ -570,6 +578,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
                 helmAngle += drag.delta;
                 drag.delta = 0;
               }
+            } else if (canvasDrag.active) {
+              const xOff = canvasDrag.curX - canvasDrag.startX;
+              const steerRate = Math.max(-1, Math.min(1, xOff / 80));
+              if (Math.abs(xOff) > 10) shipAngle -= steerRate * turn;
+              helmAngle += (steerRate * 80 - helmAngle) * 0.2;
             } else {
               const helmTarget = rgt ? 90 : left ? -90 : 0;
               helmAngle += (helmTarget - helmAngle) * 0.12;
@@ -638,6 +651,31 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           renderer.setSize(window.innerWidth, window.innerHeight);
         };
         window.addEventListener("resize", onResize);
+
+        // ── Canvas drag (joystick for ship) ──────────────────────────────────
+        const onCanvasDown = (e: PointerEvent) => {
+          if (!playModeRef.current) return;
+          renderer.domElement.setPointerCapture(e.pointerId);
+          canvasDragRef.current = { active: true, startX: e.clientX, startY: e.clientY, curX: e.clientX, curY: e.clientY };
+          setCanvasJoystick({ cx: e.clientX, cy: e.clientY, x: e.clientX, y: e.clientY });
+        };
+        const onCanvasMove = (e: PointerEvent) => {
+          const d = canvasDragRef.current;
+          if (!d.active) return;
+          d.curX = e.clientX; d.curY = e.clientY;
+          setCanvasJoystick(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+        };
+        const onCanvasUp = () => {
+          canvasDragRef.current.active = false;
+          touchKeysRef.current.delete('ArrowUp');
+          touchKeysRef.current.delete('ArrowDown');
+          setCanvasJoystick(null);
+        };
+        renderer.domElement.addEventListener('pointerdown', onCanvasDown);
+        renderer.domElement.addEventListener('pointermove', onCanvasMove);
+        renderer.domElement.addEventListener('pointerup',   onCanvasUp);
+        renderer.domElement.addEventListener('pointercancel', onCanvasUp);
+
         if (alive) setLoaded(true);
 
         disposeAll = () => {
@@ -645,6 +683,10 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           window.removeEventListener("keydown", onKeyDown);
           window.removeEventListener("keyup",   onKeyUp);
           window.removeEventListener("resize",  onResize);
+          renderer.domElement.removeEventListener('pointerdown',   onCanvasDown);
+          renderer.domElement.removeEventListener('pointermove',   onCanvasMove);
+          renderer.domElement.removeEventListener('pointerup',     onCanvasUp);
+          renderer.domElement.removeEventListener('pointercancel', onCanvasUp);
           renderer.dispose();
           if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
         };
@@ -677,6 +719,23 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   return (
     <div className={`fixed inset-0 overflow-hidden select-none ${playMode ? "bg-black" : ""}`}>
       <div ref={mountRef} className="w-full h-full" />
+
+      {/* ── Canvas joystick visual ── */}
+      {canvasJoystick && playMode && loaded && (() => {
+        const dx = canvasJoystick.x - canvasJoystick.cx;
+        const dy = canvasJoystick.y - canvasJoystick.cy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const MAX = 60;
+        const clampedX = canvasJoystick.cx + dx / Math.max(dist, MAX) * Math.min(dist, MAX);
+        const clampedY = canvasJoystick.cy + dy / Math.max(dist, MAX) * Math.min(dist, MAX);
+        return (
+          <svg className="fixed inset-0 pointer-events-none z-40" width="100%" height="100%">
+            <circle cx={canvasJoystick.cx} cy={canvasJoystick.cy} r={MAX} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
+            <line x1={canvasJoystick.cx} y1={canvasJoystick.cy} x2={clampedX} y2={clampedY} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+            <circle cx={clampedX} cy={clampedY} r={18} fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
+          </svg>
+        );
+      })()}
 
       {/* ── Play-mode UI ── */}
       {playMode && (

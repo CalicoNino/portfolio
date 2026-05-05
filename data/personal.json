@@ -7,7 +7,7 @@
   "currentRole": {
     "title": "Software Engineer",
     "company": "Nibiru Chain",
-    "startYear": "2022",
+    "startYear": "2023",
     "current": true
   },
   "stack": ["Rust", "Go", "TypeScript", "Python", "SQL", "Java"],

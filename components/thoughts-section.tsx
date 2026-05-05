@@ -21,9 +21,9 @@ export const ThoughtsSection = ({
       ref={(el) => {
         sectionsRef.current[3] = el;
       }}
-      className="min-h-screen py-20 sm:py-32 opacity-0"
+      className="py-16 sm:py-20 lg:py-32 opacity-0"
     >
-      <div className="space-y-12 sm:space-y-16">
+      <div className="space-y-6 sm:space-y-12 lg:space-y-16">
         <div className="flex items-end justify-between">
           <h2 className="text-3xl sm:text-4xl font-light">
             <span className="text-primary font-mono">
