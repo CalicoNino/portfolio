@@ -38,8 +38,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const mountRef     = useRef<HTMLDivElement>(null);
   const helmImgRef   = useRef<HTMLImageElement>(null);
   // Refs accessible both from the animation loop and from JSX pointer handlers
-  const touchKeysRef = useRef(new Set<string>());
-  const playModeRef  = useRef(playMode);
+  const touchKeysRef  = useRef(new Set<string>());
+  const playModeRef   = useRef(playMode);
+  const helmDragRef   = useRef({ active: false, prevX: 0, delta: 0 });
 
   const [todUI,      setTodUI]      = useState<TimeOfDay>("day");
   const [wxUI,       setWxUI]       = useState<Weather>("calm");
@@ -64,6 +65,23 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   // ── Touch button helpers (accessible from JSX without closure issues) ──────
   const pressKey   = (k: string) => touchKeysRef.current.add(k);
   const releaseKey = (k: string) => touchKeysRef.current.delete(k);
+
+  // ── Helm drag helpers ────────────────────────────────────────────────────
+  const onHelmPointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
+    if (!playModeRef.current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    helmDragRef.current = { active: true, prevX: e.clientX, delta: 0 };
+  };
+  const onHelmPointerMove = (e: React.PointerEvent<HTMLImageElement>) => {
+    const drag = helmDragRef.current;
+    if (!drag.active) return;
+    drag.delta += (e.clientX - drag.prevX) * 2; // 2 deg per pixel
+    drag.prevX = e.clientX;
+  };
+  const onHelmPointerUp = () => {
+    helmDragRef.current.active = false;
+    helmDragRef.current.delta = 0;
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -517,9 +535,19 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             if (left) shipAngle += turn;
             if (rgt)  shipAngle -= turn;
 
-            // Helm wheel
-            const helmTarget = rgt ? 90 : left ? -90 : 0;
-            helmAngle += (helmTarget - helmAngle) * 0.12;
+            // Helm wheel — drag steering takes priority over keys
+            const drag = helmDragRef.current;
+            if (drag.active && drag.delta !== 0) {
+              const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
+              shipAngle -= dragRate * turn;
+            }
+            if (drag.active) {
+              helmAngle += drag.delta;
+              drag.delta = 0;
+            } else {
+              const helmTarget = rgt ? 90 : left ? -90 : 0;
+              helmAngle += (helmTarget - helmAngle) * 0.12;
+            }
             if (helmImgRef.current) helmImgRef.current.style.transform = `rotate(${helmAngle}deg)`;
           } else {
             // Auto-pilot: gentle serpentine forward sailing
@@ -740,18 +768,22 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
       {/* Helm wheel — always mounted so ref attaches regardless of playMode */}
       <div
-        className="fixed bottom-8 left-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"
-        style={{ transform:"translateX(-50%)", opacity: playMode && loaded ? 1 : 0, transition:"opacity 0.6s" }}
+        className="fixed bottom-8 left-1/2 z-50 flex flex-col items-center gap-2"
+        style={{ transform:"translateX(-50%)", opacity: playMode && loaded ? 1 : 0, transition:"opacity 0.6s", pointerEvents: playMode && loaded ? "auto" : "none" }}
       >
         <img
           ref={helmImgRef}
           src="/helm_white.png"
           alt="helm"
-          className="w-20 h-20 sm:w-24 sm:h-24 will-change-transform"
+          className="w-20 h-20 sm:w-24 sm:h-24 will-change-transform cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ opacity:0.65, filter:"drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}
           draggable={false}
+          onPointerDown={onHelmPointerDown}
+          onPointerMove={onHelmPointerMove}
+          onPointerUp={onHelmPointerUp}
+          onPointerCancel={onHelmPointerUp}
         />
-        <span className="text-[10px] font-mono text-white/30 tracking-widest">
+        <span className="text-[10px] font-mono text-white/30 tracking-widest pointer-events-none">
           {playMode && loaded ? (speedPct > 2 ? "SAILING" : "ANCHORED") : ""}
         </span>
       </div>
