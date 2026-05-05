@@ -1,118 +1,51 @@
 [
   {
-    "year": "'23",
-    "role": "Full Stack Software Developer",
-    "company": "Siemens | Enlighted Inc - Cloud Team",
-    "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
-    "tech": [
-      "TypeScript",
-      "React.js",
-      "Tailwind",
-      "Node.js",
-      "MongoDB",
-      "AWS",
-      "Auth0",
-      "Java",
-      "Spring Boot"
-    ],
-    "stats": "Real-time insights"
+    "year": "'23-now",
+    "role": "Software Engineer",
+    "company": "Nibiru Inc",
+    "tech": ["React", "TypeScript", "Rust", "CosmWasm", "Solidity", "EVM"],
+    "stats": "$10M+ volume"
   },
   {
-    "year": "'23",
+    "year": "'23-'25",
     "role": "Full Stack Software Developer",
-    "company": "Siemens | Enlighted Inc - Occupancy Insights Team",
-    "description": "Built Space visualization web app and monitoring backend service with Java Spring Boot.",
-    "tech": [
-      "TypeScript",
-      "React.js",
-      "Tailwind",
-      "Node.js",
-      "MongoDB",
-      "AWS",
-      "Auth0",
-      "Java",
-      "Spring Boot"
-    ],
-    "stats": "Real-time insights"
-  },
-  {
-    "year": "'21-'23",
-    "role": "Full Stack Software Developer",
-    "company": "Siemans | Enlighted Inc - HiFive Team",
-    "description": "Developed hybrid workplace assistant with 12% signup growth. Built Slack chatbot with 17% engagement boost. Architected microservices reducing latency by 40% and CI/CD from 20min to 6min.",
-    "tech": [
-      "TypeScript",
-      "Vue.js",
-      "Tailwind",
-      "GraphQL",
-      "AWS Lambda",
-      "EventBridge",
-      "DynamoDB",
-      "GitLab CI",
-      "Terraform",
-      "Storybook"
-    ],
-    "stats": "40% faster"
+    "company": "Siemens | Enlighted Inc — Occupancy & Cloud",
+    "tech": ["TypeScript", "React.js", "Node.js", "MongoDB", "AWS", "Auth0", "Java", "Spring Boot", "Terraform", "Docker"],
+    "stats": "100+ clients"
   },
   {
     "year": "'23",
     "role": "Full Stack Software Developer",
     "company": "InheritChain",
-    "description": "Implemented AWS Cognito identity management. Built REST APIs and auth systems for legal tech client.",
-    "tech": [
-      "Node.js",
-      "Angular",
-      "AngularJS",
-      "MongoDB",
-      "AWS Cognito",
-      "REST APIs"
-    ],
-    "stats": "Auth systems"
+    "tech": ["Node.js", "Angular", "MongoDB", "AWS Cognito", "Solana"],
+    "stats": "On-chain wills"
   },
   {
-    "year": "2020",
+    "year": "'21-'23",
+    "role": "Full Stack Software Developer",
+    "company": "Siemens | Enlighted Inc — HiFive",
+    "tech": ["TypeScript", "Vue.js", "GraphQL", "AWS Lambda", "DynamoDB", "EventBridge", "GitLab CI", "Terraform", "Storybook"],
+    "stats": "40% faster"
+  },
+  {
+    "year": "'20",
     "role": "Security Researcher",
     "company": "BlackBerry",
-    "description": "Developed exploit for FFMpeg buffer overflow (CVE-2016-10190). Analyzed Docker Slim security.",
-    "tech": [
-      "Python",
-      "Security Research",
-      "LLVM",
-      "Docker",
-      "Vulnerability Analysis"
-    ],
+    "tech": ["Python", "LLVM", "Docker"],
     "stats": "CVE-2016-10190"
   },
   {
     "year": "'20",
     "role": "Security Software Developer",
     "company": "BlackBerry QNX",
-    "description": "Built Python test suite for QNX OS security. Integrated OpenSSL achieving 25% performance gain. Optimized CI/CD reducing deployment by 30%.",
-    "tech": [
-      "Python",
-      "Pytest",
-      "C",
-      "OpenSSL",
-      "LibTomCrypt",
-      "Jenkins",
-      "CI/CD"
-    ],
-    "stats": "25% faster"
+    "tech": ["Python", "Pytest", "C", "OpenSSL", "Jenkins"],
+    "stats": "150M+ vehicles"
   },
   {
     "year": "'19",
     "role": "Cybersecurity Analyst",
     "company": "Canadian Natural Resources Limited",
-    "description": "Built phishing awareness tool for 15k employees. Managed security scans and firewalls for compliance.",
-    "tech": [
-      "Python",
-      "PHP",
-      "Active Directory",
-      "LDAP",
-      "Nessus",
-      "Forescout",
-      "Palo Alto"
-    ],
+    "tech": ["Python", "PHP", "Active Directory", "Nessus", "Palo Alto"],
     "stats": "15k+ employees"
   }
 ]

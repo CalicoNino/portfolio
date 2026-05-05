@@ -66,9 +66,6 @@ export function WorkSection({
                     {job.company}
                   </div>
                 </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  {job.description}
-                </p>
               </div>
 
               <div className="lg:col-span-4 flex flex-wrap gap-2 lg:justify-end items-start content-start">

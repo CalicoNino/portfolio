@@ -40,7 +40,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   // Refs accessible both from the animation loop and from JSX pointer handlers
   const touchKeysRef  = useRef(new Set<string>());
   const playModeRef   = useRef(playMode);
-  const helmDragRef   = useRef({ active: false, prevX: 0, delta: 0 });
+  const helmDragRef   = useRef({ active: false, prevX: 0, delta: 0, startX: 0, startY: 0, curX: 0, curY: 0, isTouch: false });
 
   const [todUI,      setTodUI]      = useState<TimeOfDay>("day");
   const [wxUI,       setWxUI]       = useState<Weather>("calm");
@@ -70,17 +70,25 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const onHelmPointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
     if (!playModeRef.current) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    helmDragRef.current = { active: true, prevX: e.clientX, delta: 0 };
+    const isTouch = e.pointerType === 'touch';
+    helmDragRef.current = { active: true, prevX: e.clientX, delta: 0, startX: e.clientX, startY: e.clientY, curX: e.clientX, curY: e.clientY, isTouch };
   };
   const onHelmPointerMove = (e: React.PointerEvent<HTMLImageElement>) => {
     const drag = helmDragRef.current;
     if (!drag.active) return;
-    drag.delta += (e.clientX - drag.prevX) * 2; // 2 deg per pixel
-    drag.prevX = e.clientX;
+    if (drag.isTouch) {
+      drag.curX = e.clientX;
+      drag.curY = e.clientY;
+    } else {
+      drag.delta += (e.clientX - drag.prevX) * 2; // 2 deg per pixel
+      drag.prevX = e.clientX;
+    }
   };
   const onHelmPointerUp = () => {
     helmDragRef.current.active = false;
     helmDragRef.current.delta = 0;
+    touchKeysRef.current.delete('ArrowUp');
+    touchKeysRef.current.delete('ArrowDown');
   };
 
   useEffect(() => {
@@ -520,6 +528,16 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           const prevX = ship.position.x, prevZ = ship.position.z;
 
           if (playModeRef.current) {
+            // Joystick: sync touch drag vertical axis into virtual keys before reading inputs
+            const drag = helmDragRef.current;
+            if (drag.active && drag.isTouch) {
+              const yOff = drag.curY - drag.startY;
+              const tk = touchKeysRef.current;
+              if (yOff < -12) { tk.add('ArrowUp');   tk.delete('ArrowDown'); }
+              else if (yOff > 12) { tk.add('ArrowDown'); tk.delete('ArrowUp'); }
+              else { tk.delete('ArrowUp'); tk.delete('ArrowDown'); }
+            }
+
             // Player-controlled
             const tk   = touchKeysRef.current;
             const fwd  = keys.has("ArrowUp")    || keys.has("w") || keys.has("W") || tk.has("ArrowUp");
@@ -536,14 +554,22 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             if (rgt)  shipAngle -= turn;
 
             // Helm wheel — drag steering takes priority over keys
-            const drag = helmDragRef.current;
-            if (drag.active && drag.delta !== 0) {
-              const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
-              shipAngle -= dragRate * turn;
-            }
             if (drag.active) {
-              helmAngle += drag.delta;
-              drag.delta = 0;
+              if (drag.isTouch) {
+                // Joystick: steer proportional to horizontal offset from touch-down point
+                const xOff = drag.curX - drag.startX;
+                const steerRate = Math.max(-1, Math.min(1, xOff / 55));
+                if (Math.abs(xOff) > 8) shipAngle -= steerRate * turn;
+                helmAngle += (steerRate * 80 - helmAngle) * 0.2;
+              } else {
+                // Desktop: velocity-based drag
+                if (drag.delta !== 0) {
+                  const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
+                  shipAngle -= dragRate * turn;
+                }
+                helmAngle += drag.delta;
+                drag.delta = 0;
+              }
             } else {
               const helmTarget = rgt ? 90 : left ? -90 : 0;
               helmAngle += (helmTarget - helmAngle) * 0.12;
@@ -759,9 +785,6 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         className="fixed bottom-8 left-0 right-0 z-50 flex items-end justify-center gap-6 px-8"
         style={{ opacity: playMode && loaded ? 1 : 0, transition:"opacity 0.6s", pointerEvents: playMode && loaded ? "auto" : "none" }}
       >
-        {/* Forward — mobile only, left thumb */}
-        <TBtn k="ArrowUp" className="md:hidden mb-4 shrink-0">⬆</TBtn>
-
         {/* Helm wheel */}
         <div className="flex flex-col items-center gap-1.5">
           <img
@@ -779,10 +802,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           <span className="text-[10px] font-mono text-white/30 tracking-widest pointer-events-none">
             {playMode && loaded ? (speedPct > 2 ? "SAILING" : "ANCHORED") : ""}
           </span>
+          <span className="md:hidden text-[9px] font-mono text-white/20 pointer-events-none">
+            {playMode && loaded ? "drag ↕ throttle  ↔ steer" : ""}
+          </span>
         </div>
 
-        {/* Brake — mobile only, right thumb */}
-        <TBtn k="ArrowDown" className="md:hidden mb-4 shrink-0 opacity-70">⬇</TBtn>
       </div>
     </div>
   );
