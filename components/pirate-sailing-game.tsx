@@ -717,20 +717,8 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
           {/* Island label */}
           {nearIsland && loaded && (
-            <div className="fixed bottom-40 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono pointer-events-none">
+            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono pointer-events-none">
               🏝️ {nearIsland}
-            </div>
-          )}
-
-          {/* Mobile touch controls — shown on small screens */}
-          {loaded && (
-            <div className="fixed bottom-44 left-0 right-0 z-50 flex justify-around items-center px-8 md:hidden pointer-events-none">
-              <div className="pointer-events-auto"><TBtn k="ArrowLeft">←</TBtn></div>
-              <div className="pointer-events-auto flex flex-col items-center gap-3">
-                <TBtn k="ArrowUp">↑</TBtn>
-                <TBtn k="ArrowDown" className="opacity-60">↓</TBtn>
-              </div>
-              <div className="pointer-events-auto"><TBtn k="ArrowRight">→</TBtn></div>
             </div>
           )}
 
@@ -738,7 +726,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           {loaded && (
             <div className="fixed bottom-5 right-5 z-50 hidden md:flex flex-col gap-1 items-end text-[10px] font-mono text-white/25 pointer-events-none">
               <span><span className="text-white/40">↑ W</span> Throttle</span>
-              <span><span className="text-white/40">← →</span> Steer</span>
+              <span><span className="text-white/40">← → / drag helm</span> Steer</span>
               <span><span className="text-white/40">↓ S</span> Brake</span>
             </div>
           )}
@@ -766,26 +754,35 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         </>
       )}
 
-      {/* Helm wheel — always mounted so ref attaches regardless of playMode */}
+      {/* Helm + mobile throttle — always mounted so ref attaches regardless of playMode */}
       <div
-        className="fixed bottom-8 left-1/2 z-50 flex flex-col items-center gap-2"
-        style={{ transform:"translateX(-50%)", opacity: playMode && loaded ? 1 : 0, transition:"opacity 0.6s", pointerEvents: playMode && loaded ? "auto" : "none" }}
+        className="fixed bottom-8 left-0 right-0 z-50 flex items-end justify-center gap-6 px-8"
+        style={{ opacity: playMode && loaded ? 1 : 0, transition:"opacity 0.6s", pointerEvents: playMode && loaded ? "auto" : "none" }}
       >
-        <img
-          ref={helmImgRef}
-          src="/helm_white.png"
-          alt="helm"
-          className="w-20 h-20 sm:w-24 sm:h-24 will-change-transform cursor-grab active:cursor-grabbing touch-none select-none"
-          style={{ opacity:0.65, filter:"drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}
-          draggable={false}
-          onPointerDown={onHelmPointerDown}
-          onPointerMove={onHelmPointerMove}
-          onPointerUp={onHelmPointerUp}
-          onPointerCancel={onHelmPointerUp}
-        />
-        <span className="text-[10px] font-mono text-white/30 tracking-widest pointer-events-none">
-          {playMode && loaded ? (speedPct > 2 ? "SAILING" : "ANCHORED") : ""}
-        </span>
+        {/* Forward — mobile only, left thumb */}
+        <TBtn k="ArrowUp" className="md:hidden mb-4 shrink-0">⬆</TBtn>
+
+        {/* Helm wheel */}
+        <div className="flex flex-col items-center gap-1.5">
+          <img
+            ref={helmImgRef}
+            src="/helm_white.png"
+            alt="helm"
+            className="w-24 h-24 will-change-transform cursor-grab active:cursor-grabbing touch-none select-none"
+            style={{ opacity:0.7, filter:"drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}
+            draggable={false}
+            onPointerDown={onHelmPointerDown}
+            onPointerMove={onHelmPointerMove}
+            onPointerUp={onHelmPointerUp}
+            onPointerCancel={onHelmPointerUp}
+          />
+          <span className="text-[10px] font-mono text-white/30 tracking-widest pointer-events-none">
+            {playMode && loaded ? (speedPct > 2 ? "SAILING" : "ANCHORED") : ""}
+          </span>
+        </div>
+
+        {/* Brake — mobile only, right thumb */}
+        <TBtn k="ArrowDown" className="md:hidden mb-4 shrink-0 opacity-70">⬇</TBtn>
       </div>
     </div>
   );
