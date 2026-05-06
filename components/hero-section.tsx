@@ -5,7 +5,6 @@ import { GitHubIcon } from "@/components/icons/github-icon";
 import { TwitterIcon } from "@/components/icons/twitter-icon";
 import { TelegramIcon } from "@/components/icons/telegram-icon";
 import { DiscordIcon } from "@/components/icons/discord-icon";
-import { DownloadIcon } from "@/components/icons/download-icon";
 
 interface HeroSectionProps {
   personalData: any;
@@ -162,15 +161,6 @@ export function HeroSection({
             </div>
           </div>
 
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 hover:scale-105 transition-all duration-300 font-mono text-xs animate-pulse-glow cursor-pointer"
-          >
-            <DownloadIcon />
-            {theme.resumeFunc}
-          </a>
         </div>
 
         {/* Right Column - Current Role & Stack */}

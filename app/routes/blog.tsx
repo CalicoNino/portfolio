@@ -190,7 +190,6 @@ export default function BlogPage() {
                       </div>
 
                       <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-primary">
-                        <span>{theme.resumeFunc}</span>
                         <svg
                           className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300"
                           fill="none"

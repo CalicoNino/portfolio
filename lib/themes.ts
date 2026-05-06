@@ -8,7 +8,6 @@ export const themes = {
     funcSuffix: "()",
     arrow: " =>",
     comment: "//",
-    resumeFunc: "view_resume()",
     resultSyntax: "Result<",
     resultClosing: ">",
     colors: {
@@ -30,7 +29,6 @@ export const themes = {
     funcSuffix: "()",
     arrow: " ->",
     comment: "//",
-    resumeFunc: "ViewResume()",
     resultSyntax: "Result[",
     resultClosing: "]",
     colors: {
@@ -52,7 +50,6 @@ export const themes = {
     funcSuffix: " = () =>",
     arrow: " =>",
     comment: "//",
-    resumeFunc: "viewResume()",
     resultSyntax: "Result<",
     resultClosing: ">",
     colors: {
@@ -74,7 +71,6 @@ export const themes = {
     funcSuffix: "():",
     arrow: ":",
     comment: "#",
-    resumeFunc: "view_resume()",
     resultSyntax: "Result[",
     resultClosing: "]",
     colors: {
@@ -96,7 +92,6 @@ export const themes = {
     funcSuffix: " FROM",
     arrow: " ->",
     comment: "--",
-    resumeFunc: "VIEW_RESUME()",
     resultSyntax: "RETURN (",
     resultClosing: ")",
     colors: {
@@ -118,7 +113,6 @@ export const themes = {
     funcSuffix: "()",
     arrow: " ->",
     comment: "//",
-    resumeFunc: "viewResume()",
     resultSyntax: "Optional<",
     resultClosing: ">",
     colors: {
