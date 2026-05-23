@@ -1,6 +1,10 @@
 import { Link } from "react-router";
 import type { TimeOfDay, Weather } from "./config";
-import { SHIPS } from "./config";
+import { SHIPS, ISLAND_GLB } from "./config";
+import { LoadingScreen } from "./LoadingScreen";
+import { StatBar, TBtn, InfoTooltip } from "./ui-primitives";
+
+export type { TBtn };
 
 export interface GameUIProps {
   mountRef: React.RefObject<HTMLDivElement | null>;
@@ -21,49 +25,23 @@ export interface GameUIProps {
   nearIsland: string | null;
   heading: number;
   speedPct: number;
+  shipPos: { x: number; z: number };
   pressKey: (k: string) => void;
   releaseKey: (k: string) => void;
   onHelmPointerDown: (e: React.PointerEvent<HTMLImageElement>) => void;
   onHelmPointerMove: (e: React.PointerEvent<HTMLImageElement>) => void;
   onHelmPointerUp: () => void;
-}
-
-function StatBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[8px] font-mono text-white/30 w-5">{label}</span>
-      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-        <div className="h-full bg-cyan-400/50 rounded-full" style={{ width: `${Math.round(value * 100)}%` }} />
-      </div>
-    </div>
-  );
-}
-
-export function TBtn({ k, children, className, pressKey, releaseKey }: {
-  k: string; children: React.ReactNode; className?: string;
-  pressKey: (k: string) => void; releaseKey: (k: string) => void;
-}) {
-  return (
-    <button
-      onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pressKey(k); }}
-      onPointerUp={() => releaseKey(k)}
-      onPointerLeave={() => releaseKey(k)}
-      onPointerCancel={() => releaseKey(k)}
-      onContextMenu={(e) => e.preventDefault()}
-      className={`flex items-center justify-center w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm border border-white/25 text-white text-2xl active:bg-white/20 select-none touch-none cursor-pointer ${className ?? ""}`}
-    >
-      {children}
-    </button>
-  );
+  onCompassClick: () => void;
 }
 
 export function GameUI({
   mountRef, helmImgRef, playMode, onExitPlay, loaded, errMsg,
   canvasJoystick, todUI, wxUI, onSetTimeOfDay, onSetWeather,
   shipIdx, swapping, onShipPrev, onShipNext,
-  nearIsland, heading, speedPct,
+  nearIsland, heading, speedPct, shipPos,
   pressKey, releaseKey,
   onHelmPointerDown, onHelmPointerMove, onHelmPointerUp,
+  onCompassClick,
 }: GameUIProps) {
   const maxS = Math.max(...SHIPS.map(x => x.maxSpeed));
   const maxT = Math.max(...SHIPS.map(x => x.turnSpeed));
@@ -89,7 +67,6 @@ export function GameUI({
         );
       })()}
 
-      {/* Play-mode UI */}
       {playMode && (
         <>
           {/* Back / exit */}
@@ -103,7 +80,7 @@ export function GameUI({
             </Link>
           )}
 
-          {/* Settings + ship selector */}
+          {/* Environment + ship controls */}
           {loaded && (
             <div className="fixed top-16 left-5 z-50 flex flex-col gap-2">
               {/* Time of day */}
@@ -129,6 +106,9 @@ export function GameUI({
                   <span className={`text-[11px] font-mono flex-1 text-center transition-opacity duration-200 ${swapping ? "text-white/30 animate-pulse" : "text-white/80"}`}>
                     {swapping ? "loading…" : SHIPS[shipIdx].name}
                   </span>
+                  {!swapping && SHIPS[shipIdx].sketchLink && (
+                    <InfoTooltip sketchLink={SHIPS[shipIdx].sketchLink!} author={SHIPS[shipIdx].author} license={SHIPS[shipIdx].license} />
+                  )}
                   <button onClick={onShipNext} disabled={swapping} className="text-white/60 hover:text-white px-1.5 py-1 rounded cursor-pointer transition-all duration-200 disabled:opacity-30">›</button>
                 </div>
                 {!swapping && (
@@ -142,11 +122,10 @@ export function GameUI({
             </div>
           )}
 
-          {/* Compass + speed */}
+          {/* Compass + speed + coordinates */}
           {loaded && (
             <div className="fixed top-5 right-5 z-50 flex flex-col items-center gap-2">
-              {/* Compass rose */}
-              <div className="relative w-20 h-20">
+              <div className="relative w-20 h-20 cursor-pointer" onClick={onCompassClick} title="Snap to north">
                 <svg viewBox="0 0 80 80" className="w-full h-full drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
                   <defs>
                     <filter id="cShadow">
@@ -157,12 +136,8 @@ export function GameUI({
                       <stop offset="100%" stopColor="#0d1017" stopOpacity="0.97" />
                     </radialGradient>
                   </defs>
-
-                  {/* Outer ring */}
                   <circle cx="40" cy="40" r="38" fill="url(#cBg)" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
                   <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-
-                  {/* Tick marks */}
                   {Array.from({ length: 36 }).map((_, i) => {
                     const a = (i / 36) * Math.PI * 2;
                     const major = i % 9 === 0;
@@ -176,8 +151,6 @@ export function GameUI({
                       />
                     );
                   })}
-
-                  {/* Cardinal letters */}
                   {([["N", 0, 25], ["S", 180, 25], ["E", 90, 25], ["W", 270, 25]] as [string, number, number][]).map(([lbl, deg, r]) => {
                     const a = (deg * Math.PI) / 180;
                     return (
@@ -190,33 +163,31 @@ export function GameUI({
                       >{lbl}</text>
                     );
                   })}
-
-                  {/* Rotating needle group */}
                   <g transform={`rotate(${heading} 40 40)`} filter="url(#cShadow)">
-                    {/* North — red diamond */}
                     <polygon points="40,10 43,40 40,34 37,40" fill="#ef4444" />
                     <polygon points="40,10 43,40 40,34 37,40" fill="none" stroke="#7f1d1d" strokeWidth="0.4" />
-                    {/* South — white diamond */}
                     <polygon points="40,70 43,40 40,46 37,40" fill="rgba(255,255,255,0.6)" />
                     <polygon points="40,70 43,40 40,46 37,40" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.4" />
-                    {/* Centre cap */}
                     <circle cx="40" cy="40" r="2.5" fill="#e5e7eb" stroke="#6b7280" strokeWidth="0.6" />
                   </g>
                 </svg>
               </div>
-
               <span className="text-[10px] font-mono text-white/50 bg-black/50 px-2 py-0.5 rounded tracking-wider">{heading}°</span>
               <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-cyan-400/60 rounded-full transition-all duration-100" style={{ width: `${speedPct}%` }} />
               </div>
               <span className="text-[9px] font-mono text-white/30">{speedPct}%</span>
+              <span className="text-[9px] font-mono text-white/25 tabular-nums">{shipPos.x}, {shipPos.z}</span>
             </div>
           )}
 
-          {/* Island label */}
+          {/* Nearby island label */}
           {nearIsland && loaded && (
-            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono pointer-events-none">
+            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono">
               🏝️ {nearIsland}
+              {ISLAND_GLB[nearIsland]?.sketchLink && (
+                <InfoTooltip sketchLink={ISLAND_GLB[nearIsland].sketchLink!} author={ISLAND_GLB[nearIsland].author} license={ISLAND_GLB[nearIsland].license} />
+              )}
             </div>
           )}
 
@@ -231,28 +202,23 @@ export function GameUI({
 
           {/* Loading / error overlay */}
           {!loaded && (
-            <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-4">
-              {errMsg ? (
-                <>
-                  <span className="text-red-400 font-mono text-sm">Failed to initialize</span>
-                  <pre className="text-red-300/60 text-xs max-w-lg text-center whitespace-pre-wrap px-4">{errMsg}</pre>
-                  {onExitPlay
-                    ? <button onClick={onExitPlay} className="mt-4 text-white/50 font-mono text-xs underline">← go back</button>
-                    : <Link to="/" className="mt-4 text-white/50 font-mono text-xs underline">← go back</Link>
-                  }
-                </>
-              ) : (
-                <>
-                  <span className="text-4xl">🏴‍☠️</span>
-                  <span className="text-white/50 font-mono text-sm tracking-widest animate-pulse">SETTING SAIL…</span>
-                </>
-              )}
-            </div>
+            errMsg ? (
+              <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-4">
+                <span className="text-red-400 font-mono text-sm">Failed to initialize</span>
+                <pre className="text-red-300/60 text-xs max-w-lg text-center whitespace-pre-wrap px-4">{errMsg}</pre>
+                {onExitPlay
+                  ? <button onClick={onExitPlay} className="mt-4 text-white/50 font-mono text-xs underline">← go back</button>
+                  : <Link to="/" className="mt-4 text-white/50 font-mono text-xs underline">← go back</Link>
+                }
+              </div>
+            ) : (
+              <LoadingScreen onBack={onExitPlay} />
+            )
           )}
         </>
       )}
 
-      {/* Helm — always mounted so ref attaches regardless of playMode */}
+      {/* Helm — always mounted so the ref attaches regardless of playMode */}
       <div
         className="fixed bottom-8 left-0 right-0 z-50 flex items-end justify-center gap-6 px-8"
         style={{ opacity: playMode && loaded ? 1 : 0, transition: "opacity 0.6s", pointerEvents: playMode && loaded ? "auto" : "none" }}
@@ -278,7 +244,6 @@ export function GameUI({
           </span>
         </div>
       </div>
-
     </div>
   );
 }

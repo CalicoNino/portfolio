@@ -27,14 +27,17 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const shipPosRef    = useRef({ x: 0, z: 0, angle: 0 });
   const todRef        = useRef<TimeOfDay>("day");
   const wxRef         = useRef<Weather>("calm");
+  const compassResetRef = useRef(false);
 
   const [todUI,      setTodUI]      = useState<TimeOfDay>("day");
   const [wxUI,       setWxUI]       = useState<Weather>("calm");
   const [nearIsland, setNearIsland] = useState<string | null>(null);
   const [heading,    setHeading]    = useState(0);
   const [speedPct,   setSpeedPct]   = useState(0);
-  const [loaded,     setLoaded]     = useState(false);
-  const [errMsg,     setErrMsg]     = useState<string | null>(null);
+  const [shipPos,    setShipPos]    = useState({ x: 0, z: 0 });
+  const [loaded,       setLoaded]       = useState(false);
+  const [displayReady, setDisplayReady] = useState(false);
+  const [errMsg,       setErrMsg]       = useState<string | null>(null);
   const [swapping,   setSwapping]   = useState(false);
   const [canvasJoystick, setCanvasJoystick] = useState<{ cx: number; cy: number; x: number; y: number } | null>(null);
   const [shipIdx, setShipIdx] = useState(() => {
@@ -75,7 +78,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
   useEffect(() => {
     playModeRef.current = playMode;
-    if (!playMode) touchKeysRef.current.clear();
+    if (!playMode) { touchKeysRef.current.clear(); setDisplayReady(false); return; }
+    const t = setTimeout(() => setDisplayReady(true), 3000);
+    return () => clearTimeout(t);
   }, [playMode]);
 
   // ── Helm drag handlers ──────────────────────────────────────────────────────
@@ -237,13 +242,13 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         };
 
         // ── Player ship ───────────────────────────────────────────────────────
-        const fitShipModel = (model: T.Object3D) => {
+        const fitShipModel = (model: T.Object3D, yOffset = 0) => {
           const box         = new THREE.Box3().setFromObject(model);
           const size        = box.getSize(new THREE.Vector3());
           const center      = box.getCenter(new THREE.Vector3());
           const scaleFactor = 24 / Math.max(size.x, size.y, size.z);
           model.scale.setScalar(scaleFactor);
-          model.position.set(-scaleFactor * center.x, -2 - scaleFactor * box.min.y, -scaleFactor * center.z);
+          model.position.set(-scaleFactor * center.x, -2 + yOffset - scaleFactor * box.min.y, -scaleFactor * center.z);
           let flag: T.Mesh | null = null;
           model.traverse((child) => {
             if (!(child as T.Mesh).isMesh) return;
@@ -259,7 +264,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         let shipModel = initialScene;
         shipModel.rotation.y = SHIPS[initialShipIdx].rotY;
-        let flagMesh: T.Mesh | null = fitShipModel(shipModel);
+        let flagMesh: T.Mesh | null = fitShipModel(shipModel, SHIPS[initialShipIdx].yOffset);
 
         const ship = new THREE.Group();
         ship.add(shipModel); ship.position.set(0, 0.2, 0); scene.add(ship);
@@ -273,7 +278,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             ship.remove(shipModel);
             shipModel = newScene;
             shipModel.rotation.y = s.rotY;
-            flagMesh = fitShipModel(shipModel);
+            flagMesh = fitShipModel(shipModel, s.yOffset);
             ship.add(shipModel);
             shipStatsRef.current = { maxSpeed: s.maxSpeed, accel: s.accel, turnSpeed: s.turnSpeed };
           } finally {
@@ -284,11 +289,12 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         // ── Islands (procedural geometry) ─────────────────────────────────────
         buildProceduralIslands(scene, ISLANDS, THREE);
 
-        // ── DEBUG: island radius rings ────────────────────────────────────────
+        // ── DEBUG: island radius rings (set DEBUG_RINGS = true to enable) ──────
+        const DEBUG_RINGS = false;
         const SEG = 64;
         const radiusMat = new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.9, depthTest: false });
         const threshMat = new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.6, depthTest: false });
-        for (const isl of ISLANDS) {
+        if (DEBUG_RINGS) for (const isl of ISLANDS) {
           const makeRing = (r: number, mat: T.LineBasicMaterial) => {
             const pts: T.Vector3[] = [];
             for (let i = 0; i <= SEG; i++) {
@@ -325,6 +331,8 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           if (!def) continue;
           loadWithCache(def.path).then((model) => {
             if (!alive) return;
+            // Apply rotation BEFORE computing bounding box so centering is in the correct orientation
+            model.rotation.y = def.rotY;
             const box    = new THREE.Box3().setFromObject(model);
             const size   = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
@@ -335,7 +343,6 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
               -sf * box.min.y,
               def.noCenter ? 0 : -sf * center.z,
             );
-            model.rotation.y = def.rotY;
             const cx = isl.x, cz = isl.z, cr = isl.radius;
             model.traverse((child) => {
               const m = child as T.Mesh;
@@ -430,7 +437,14 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             return p;
           } catch { return null; }
         })();
-        if (savedPos) { ship.position.x = savedPos.x; ship.position.z = savedPos.z; }
+        if (savedPos) {
+          ship.position.x = savedPos.x;
+          ship.position.z = savedPos.z;
+        } else {
+          // Default spawn: just south of El Galeón at the world origin
+          ship.position.x = 0;
+          ship.position.z = 40;
+        }
         let shipAngle  = savedPos?.angle ?? 0.4;
         let shipSpeed  = 0;
         let helmAngle  = 0;
@@ -547,6 +561,8 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             const left = keys.has("ArrowLeft")  || keys.has("a") || keys.has("A") || tk.has("ArrowLeft");
             const rgt  = keys.has("ArrowRight") || tk.has("ArrowRight");
 
+            if (compassResetRef.current) { shipAngle = 0; shipSpeed *= 0.3; compassResetRef.current = false; }
+
             const { maxSpeed, accel, turnSpeed } = shipStatsRef.current;
             if (fwd)       shipSpeed = Math.min(shipSpeed + accel, maxSpeed);
             else if (back) shipSpeed = Math.max(shipSpeed - accel * 2, -maxSpeed * 0.25);
@@ -637,6 +653,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             setNearIsland(closestDist2 < 14400 ? closestName : null);
             setHeading(Math.round(((shipAngle * 180 / Math.PI) % 360 + 360) % 360));
             setSpeedPct(Math.round(Math.abs(shipSpeed) / shipStatsRef.current.maxSpeed * 100));
+            setShipPos({ x: Math.round(ship.position.x), z: Math.round(ship.position.z) });
           }
 
           // Bob & rock
@@ -739,7 +756,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
       helmImgRef={helmImgRef}
       playMode={playMode}
       onExitPlay={onExitPlay}
-      loaded={loaded}
+      loaded={loaded && displayReady}
       errMsg={errMsg}
       canvasJoystick={canvasJoystick}
       todUI={todUI}
@@ -755,9 +772,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
       speedPct={speedPct}
       pressKey={pressKey}
       releaseKey={releaseKey}
+      shipPos={shipPos}
       onHelmPointerDown={onHelmPointerDown}
       onHelmPointerMove={onHelmPointerMove}
       onHelmPointerUp={onHelmPointerUp}
+      onCompassClick={() => { compassResetRef.current = true; }}
     />
   );
 }

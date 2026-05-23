@@ -1,34 +1,10 @@
 [
   {
-    "title": "Realtime Chat Engine",
-    "description": "WebSocket-based chat system built with Rust and Tokio, handling 10k+ concurrent connections with sub-50ms latency.",
-    "tech": ["Rust", "WebSocket", "Redis"],
-    "link": "#",
-    "status": "Production",
+    "title": "Pirate Seas",
+    "description": "A fully 3D browser-based pirate sailing game. Explore an open world across 12 hand-crafted islands, sail 10 ships, and experience dynamic weather and day/night cycles — all running in WebGL.",
+    "tech": ["Three.js", "React", "TypeScript", "WebGL", "GLSL"],
+    "link": "/?sails=true",
+    "status": "Live",
     "gradient": "from-primary/20 to-accent/20"
-  },
-  {
-    "title": "Dev Analytics Dashboard",
-    "description": "Real-time developer productivity metrics and insights platform with custom visualization components.",
-    "tech": ["Next.js", "PostgreSQL", "Rust"],
-    "link": "#",
-    "status": "Active",
-    "gradient": "from-accent/20 to-primary/10"
-  },
-  {
-    "title": "CLI Tool for API Testing",
-    "description": "Fast and ergonomic command-line tool for testing REST and GraphQL APIs with parallel execution support.",
-    "tech": ["Rust", "Tokio", "GraphQL"],
-    "link": "#",
-    "status": "OSS",
-    "gradient": "from-primary/10 to-accent/20"
-  },
-  {
-    "title": "E-commerce Microservices",
-    "description": "Distributed payment processing system with event-driven architecture and comprehensive error handling.",
-    "tech": ["Rust", "Kafka", "gRPC"],
-    "link": "#",
-    "status": "Production",
-    "gradient": "from-accent/20 to-primary/20"
   }
 ]

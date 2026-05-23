@@ -63,6 +63,12 @@ const Home = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Auto-enter play mode if ?play param is present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("sails") === "true") setIsPlaying(true);
+  }, []);
+
   // Lock body scroll while the game is active
   useEffect(() => {
     document.body.style.overflow = isPlaying ? "hidden" : "";
