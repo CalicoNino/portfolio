@@ -178,14 +178,14 @@ export function GameUI({
                   })}
 
                   {/* Cardinal letters */}
-                  {([["N", 0, 7], ["S", 180, 7], ["E", 90, 7], ["W", 270, 7]] as [string, number, number][]).map(([lbl, deg, r]) => {
+                  {([["N", 0, 25], ["S", 180, 25], ["E", 90, 25], ["W", 270, 25]] as [string, number, number][]).map(([lbl, deg, r]) => {
                     const a = (deg * Math.PI) / 180;
                     return (
                       <text key={lbl}
                         x={40 + Math.sin(a) * r} y={40 - Math.cos(a) * r + 3.5}
-                        textAnchor="middle" fontSize="7"
-                        fontFamily="ui-sans-serif,system-ui,sans-serif" fontWeight="700"
-                        fill={lbl === "N" ? "#f87171" : "rgba(255,255,255,0.55)"}
+                        textAnchor="middle" fontSize="8.5"
+                        fontFamily="ui-sans-serif,system-ui,sans-serif" fontWeight="800"
+                        fill={lbl === "N" ? "#f87171" : "rgba(255,255,255,0.7)"}
                         filter="url(#cShadow)"
                       >{lbl}</text>
                     );
