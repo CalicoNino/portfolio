@@ -30,7 +30,7 @@ export const ISLANDS: IslandDef[] = [
   { name: "Los Peñascos",     x: -370, z:  210, radius: 34, type: "rocks",       glbOnly: true },
   { name: "Fort Santiago",    x:  260, z:  -60, radius: 160, type: "fort"                      },
   { name: "Isla del Faro",    x: -130, z:  370, radius: 24, type: "lighthouse", glbOnly: true  },
-  { name: "La Selva",         x:   60, z:  290, radius: 56, type: "jungle"                     },
+  { name: "La Selva",         x:   60, z:  290, radius: 56, type: "jungle",     glbOnly: true  },
   // ── outer ring ──────────────────────────────────────────────────────────────
   { name: "Las Ruinas",       x: -260, z:  520, radius: 22, type: "ruins"                      },
   { name: "Isla Serpiente",   x:  540, z: -420, radius: 42, type: "rocks"                      },
