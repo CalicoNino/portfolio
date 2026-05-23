@@ -28,7 +28,7 @@ export const ISLANDS: IslandDef[] = [
   { name: "Puerto Fuego",     x:  200, z: -300, radius: 22, type: "port"                       },
   { name: "Isla Encantada",   x:  340, z:  110, radius: 40, type: "ruins"                      },
   { name: "Los Peñascos",     x: -370, z:  210, radius: 34, type: "rocks",       glbOnly: true },
-  { name: "Fort Santiago",    x:  260, z:  -60, radius: 80, type: "fort",        glbOnly: true },
+  { name: "Fort Santiago",    x:  260, z:  -60, radius: 160, type: "fort"                      },
   { name: "Isla del Faro",    x: -130, z:  370, radius: 38, type: "lighthouse"                 },
   { name: "La Selva",         x:   60, z:  290, radius: 56, type: "jungle"                     },
   // ── outer ring ──────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ export const ISLANDS: IslandDef[] = [
 ];
 
 export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number; smooth?: boolean; circular?: boolean }> = {
-  "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 1.0, yOffset:  -8 },
+  "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 2.0, yOffset:  -8 },
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset:  -8, smooth: true, circular: true },
   "La Selva":         { path: "/3d/low_poly_medieval_island.glb",       rotY: 0,             scale: 2.0, yOffset:  -8 },
