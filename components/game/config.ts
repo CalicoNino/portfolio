@@ -33,7 +33,6 @@ export const ISLANDS: IslandDef[] = [
   { name: "Isla del Faro",    x: -130, z:  370, radius: 38, type: "lighthouse"                 },
   { name: "La Selva",         x:   60, z:  290, radius: 56, type: "jungle"                     },
   // ── outer ring ──────────────────────────────────────────────────────────────
-  { name: "La Isla Voladora", x:  460, z:  360, radius: 60, type: "port",        glbOnly: true },
   { name: "Las Ruinas",       x: -260, z:  520, radius: 22, type: "ruins"                      },
   { name: "Isla Serpiente",   x:  540, z: -420, radius: 42, type: "rocks"                      },
   { name: "El Castillo",      x: -460, z: -400, radius: 54, type: "fort"                       },
@@ -45,7 +44,6 @@ export const ISLANDS: IslandDef[] = [
 export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number }> = {
   "El Castillo":      { path: "/3d/castle.glb",                         rotY: 0.5,           scale: 0.8               },
   "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 2.0, yOffset: -20 },
-  "La Isla Voladora": { path: "/3d/dalaran_fantasyislandchallenge.glb", rotY: 0,             scale: 2.0, yOffset: -25 },
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset: -30 },
   "Las Ruinas":       { path: "/3d/low_poly_medieval_island.glb",       rotY: 0,             scale: 2.0, yOffset: -55 },

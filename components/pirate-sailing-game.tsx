@@ -284,6 +284,24 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         // ── Islands (procedural geometry) ─────────────────────────────────────
         buildProceduralIslands(scene, ISLANDS, THREE);
 
+        // ── DEBUG: island radius rings ────────────────────────────────────────
+        const SEG = 64;
+        const radiusMat  = new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.7 });
+        const threshMat  = new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.4 });
+        for (const isl of ISLANDS) {
+          const makeRing = (r: number, mat: T.LineBasicMaterial) => {
+            const pts: T.Vector3[] = [];
+            for (let i = 0; i <= SEG; i++) {
+              const a = (i / SEG) * Math.PI * 2;
+              pts.push(new THREE.Vector3(isl.x + Math.cos(a) * r, 1, isl.z + Math.sin(a) * r));
+            }
+            return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+          };
+          scene.add(makeRing(isl.radius, radiusMat));
+          scene.add(makeRing(isl.radius + 6, threshMat));
+        }
+        // ── END DEBUG ─────────────────────────────────────────────────────────
+
         // ── Rain ──────────────────────────────────────────────────────────────
         const rainPosArr = new Float32Array(RAIN_COUNT * 6);
         for (let i = 0; i < RAIN_COUNT; i++) {
