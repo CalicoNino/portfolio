@@ -41,7 +41,7 @@ export const ISLANDS: IslandDef[] = [
 ];
 
 export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number; smooth?: boolean; circular?: boolean; noCenter?: boolean }> = {
-  "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 2.0, yOffset:  -8 },
+  "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 0.8, yOffset:  -8, noCenter: true },
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset:  -8, smooth: true, circular: true },
   "La Selva":         { path: "/3d/low_poly_medieval_island.glb",       rotY: 0,             scale: 2.0, yOffset:  -8 },
