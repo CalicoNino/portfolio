@@ -40,13 +40,13 @@ export const ISLANDS: IslandDef[] = [
   { name: "La Jungla Verde",  x: -160, z:  630, radius: 62, type: "jungle"                     },
 ];
 
-export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number; smooth?: boolean; circular?: boolean }> = {
+export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number; smooth?: boolean; circular?: boolean; noCenter?: boolean }> = {
   "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 2.0, yOffset:  -8 },
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset:  -8, smooth: true, circular: true },
   "La Selva":         { path: "/3d/low_poly_medieval_island.glb",       rotY: 0,             scale: 2.0, yOffset:  -8 },
   "Isla del Faro":    { path: "/3d/the_mill.glb",                       rotY: 0,             scale: 0.5               },
-  "El Galeón":        { path: "/3d/pirate_ship_rigged.glb",             rotY: Math.PI * 0.3, scale: 1.2               },
+  "El Galeón":        { path: "/3d/pirate_ship_rigged.glb",             rotY: Math.PI * 0.3, scale: 1.2, noCenter: true },
 };
 
 export const WEATHER_PRESETS = {

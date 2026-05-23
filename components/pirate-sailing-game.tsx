@@ -330,7 +330,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             const center = box.getCenter(new THREE.Vector3());
             const sf     = (isl.radius * def.scale) / Math.max(size.x, size.z);
             model.scale.setScalar(sf);
-            model.position.set(-sf * center.x, -sf * box.min.y, -sf * center.z);
+            model.position.set(
+              def.noCenter ? 0 : -sf * center.x,
+              -sf * box.min.y,
+              def.noCenter ? 0 : -sf * center.z,
+            );
             model.rotation.y = def.rotY;
             const cx = isl.x, cz = isl.z, cr = isl.radius;
             model.traverse((child) => {
