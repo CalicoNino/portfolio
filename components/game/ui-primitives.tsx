@@ -4,7 +4,7 @@ export function InfoTooltip({ sketchLink, author, license }: { sketchLink: strin
   const [open, setOpen] = useState(false);
   return (
     <div className="relative flex-shrink-0">
-      {open && <div className="fixed inset-0 z-[190]" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 z-[190]" onPointerDown={() => setOpen(false)} />}
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
         className="relative z-[200] text-white/30 hover:text-white/60 text-[11px] w-4 h-4 flex items-center justify-center transition-colors cursor-pointer leading-none"
