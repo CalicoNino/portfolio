@@ -1,17 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function InfoTooltip({ sketchLink, author, license }: { sketchLink: string; author?: string; license?: string }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    document.addEventListener("touchend", close);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("touchend", close);
+    };
+  }, [open]);
+
   return (
     <div className="relative flex-shrink-0">
-      {open && <div className="fixed inset-0 z-[190]" onClick={() => setOpen(false)} />}
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-        className="relative z-[200] text-white/30 hover:text-white/60 text-[11px] w-4 h-4 flex items-center justify-center transition-colors cursor-pointer leading-none"
+        className="text-white/30 hover:text-white/60 text-[11px] w-4 h-4 flex items-center justify-center transition-colors cursor-pointer leading-none"
         title="Attribution"
       >ℹ</button>
       {open && (
-        <div className="absolute z-[200] bottom-full right-0 mb-1.5 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap pointer-events-auto">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute z-[200] top-1/2 -translate-y-1/2 left-full ml-2 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap"
+        >
           {author && <div className="text-[10px] font-mono text-white/60 mb-0.5">{author}</div>}
           {license && <div className="text-[9px] font-mono text-white/35 mb-2">{license}</div>}
           <a href={sketchLink} target="_blank" rel="noopener noreferrer"
