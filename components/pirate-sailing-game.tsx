@@ -16,22 +16,37 @@ interface PirateSailingGameProps {
 interface IslandDef {
   name: string; x: number; z: number; radius: number;
   type: "volcano"|"lighthouse"|"fort"|"ruins"|"jungle"|"port"|"rocks";
+  dockAngle: number; // radians; 0 = +z face, clockwise
 }
 
+const PIER_LEN = 18;
+
 const ISLANDS: IslandDef[] = [
-  { name: "Isla del Diablo", x: -220, z: -160, radius: 38, type: "volcano"    },
-  { name: "Puerto Refugio",  x:  200, z: -300, radius: 42, type: "port"       },
-  { name: "Isla Encantada",  x:  340, z:  110, radius: 32, type: "ruins"      },
-  { name: "Los Peñascos",    x: -370, z:  210, radius: 28, type: "rocks"      },
-  { name: "Fort Santiago",   x:  260, z:  -60, radius: 38, type: "fort"       },
-  { name: "Isla del Faro",   x: -130, z:  370, radius: 32, type: "lighthouse" },
-  { name: "La Selva",        x:   60, z:  290, radius: 48, type: "jungle"     },
+  // ── inner ring ────────────────────────────────────────────────────────────
+  { name: "Isla del Diablo",  x: -220, z: -160, radius: 46, type: "volcano",    dockAngle:  0.9 },
+  { name: "Puerto Refugio",   x:  200, z: -300, radius: 54, type: "port",        dockAngle: -0.5 },
+  { name: "Isla Encantada",   x:  340, z:  110, radius: 40, type: "ruins",       dockAngle:  2.8 },
+  { name: "Los Peñascos",     x: -370, z:  210, radius: 34, type: "rocks",       dockAngle:  1.2 },
+  { name: "Fort Santiago",    x:  260, z:  -60, radius: 48, type: "fort",        dockAngle: -1.0 },
+  { name: "Isla del Faro",    x: -130, z:  370, radius: 38, type: "lighthouse",  dockAngle: -0.3 },
+  { name: "La Selva",         x:   60, z:  290, radius: 56, type: "jungle",      dockAngle:  3.5 },
+  // ── outer ring ────────────────────────────────────────────────────────────
+  { name: "Isla Negra",       x: -540, z: -100, radius: 52, type: "volcano",     dockAngle:  0.6 },
+  { name: "Puerto del Sol",   x:  460, z:  360, radius: 60, type: "port",        dockAngle: -1.2 },
+  { name: "Las Ruinas",       x: -260, z:  520, radius: 46, type: "ruins",       dockAngle:  1.6 },
+  { name: "Isla Serpiente",   x:  540, z: -420, radius: 42, type: "rocks",       dockAngle:  2.2 },
+  { name: "El Castillo",      x: -460, z: -400, radius: 54, type: "fort",        dockAngle: -0.8 },
+  { name: "Faro del Norte",   x:  100, z: -580, radius: 42, type: "lighthouse",  dockAngle:  0.4 },
+  { name: "La Jungla Verde",  x: -160, z:  630, radius: 62, type: "jungle",      dockAngle: -1.5 },
 ];
 
-const MAX_SPEED  = 22;
-const ACCEL      = 0.28;
-const TURN_SPEED = 0.021;
-const WORLD_R    = 490;
+const SHIPS = [
+  { name: "Nave",     path: "/3d/nave_new.glb",            maxSpeed: 22, accel: 0.28, turnSpeed: 0.021, desc: "Balanced"  },
+  { name: "Marauder", path: "/3d/brown_marauder.glb",      maxSpeed: 16, accel: 0.18, turnSpeed: 0.013, desc: "Slow & sturdy" },
+  { name: "Fantasy",  path: "/3d/fantasy_sailing_ship.glb", maxSpeed: 30, accel: 0.40, turnSpeed: 0.026, desc: "Swift"     },
+  { name: "Pirate",   path: "/3d/pirate_ship.glb",         maxSpeed: 20, accel: 0.24, turnSpeed: 0.034, desc: "Agile"     },
+];
+const WORLD_R    = 720;
 const RAIN_COUNT = 1800;
 
 export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailingGameProps) {
@@ -51,6 +66,15 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const [loaded,     setLoaded]     = useState(false);
   const [errMsg,     setErrMsg]     = useState<string | null>(null);
   const [canvasJoystick, setCanvasJoystick] = useState<{ cx: number; cy: number; x: number; y: number } | null>(null);
+  const [shipIdx,    setShipIdx]    = useState(0);
+  const [swapping,   setSwapping]   = useState(false);
+  const [docked,     setDocked]     = useState(false);
+  const swapShipRef  = useRef<((idx: number) => Promise<void>) | null>(null);
+  const shipStatsRef = useRef({ maxSpeed: SHIPS[0].maxSpeed, accel: SHIPS[0].accel, turnSpeed: SHIPS[0].turnSpeed });
+  const shipPosRef   = useRef({ x: 0, z: 0, angle: 0 });
+  const dockedRef    = useRef(false);
+  const dockedPosRef = useRef({ x: 0, z: 0, angle: 0 });
+  const minimapRef   = useRef<HTMLCanvasElement>(null);
 
   const todRef = useRef<TimeOfDay>("day");
   const wxRef  = useRef<Weather>("calm");
@@ -219,32 +243,51 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         dracoLoader.setDecoderPath("/draco/gltf/");
         const gltfLoader = new GLTFLoader();
         gltfLoader.setDRACOLoader(dracoLoader);
-        const gltf = await gltfLoader.loadAsync("/3d/nave_new.glb");
+        const gltf = await gltfLoader.loadAsync(SHIPS[0].path);
         if (!alive) return;
-        const shipModel = gltf.scene;
 
-        const box         = new THREE.Box3().setFromObject(shipModel);
-        const size        = box.getSize(new THREE.Vector3());
-        const center      = box.getCenter(new THREE.Vector3());
-        const scaleFactor = 24 / Math.max(size.x, size.y, size.z);
-        shipModel.scale.setScalar(scaleFactor);
-        // parent_pos = scale*local + position → place keel (box.min.y) at -2 in group space
-        shipModel.position.set(
-          -scaleFactor * center.x,
-          -2 - scaleFactor * box.min.y,
-          -scaleFactor * center.z
-        );
+        const fitShipModel = (model: T.Object3D) => {
+          const box         = new THREE.Box3().setFromObject(model);
+          const size        = box.getSize(new THREE.Vector3());
+          const center      = box.getCenter(new THREE.Vector3());
+          const scaleFactor = 24 / Math.max(size.x, size.y, size.z);
+          model.scale.setScalar(scaleFactor);
+          model.position.set(
+            -scaleFactor * center.x,
+            -2 - scaleFactor * box.min.y,
+            -scaleFactor * center.z
+          );
+          let flag: T.Mesh | null = null;
+          model.traverse((child) => {
+            if (!(child as T.Mesh).isMesh) return;
+            const m = child as T.Mesh;
+            m.castShadow = true; m.receiveShadow = true;
+            if (!flag && m.position.y > size.y * scaleFactor * 0.7) flag = m;
+          });
+          return flag;
+        };
 
-        let flagMesh: T.Mesh | null = null;
-        shipModel.traverse((child) => {
-          if (!(child as T.Mesh).isMesh) return;
-          const m = child as T.Mesh;
-          m.castShadow = true; m.receiveShadow = true;
-          if (!flagMesh && m.position.y > size.y * scaleFactor * 0.7) flagMesh = m;
-        });
+        let shipModel = gltf.scene;
+        let flagMesh: T.Mesh | null = fitShipModel(shipModel);
 
         const ship = new THREE.Group();
-        ship.add(shipModel); ship.position.set(0, 1.5, 0); scene.add(ship);
+        ship.add(shipModel); ship.position.set(0, 0.2, 0); scene.add(ship);
+
+        swapShipRef.current = async (idx: number) => {
+          setSwapping(true);
+          try {
+            const s = SHIPS[idx];
+            const newGltf = await gltfLoader.loadAsync(s.path);
+            if (!alive) return;
+            ship.remove(shipModel);
+            shipModel = newGltf.scene;
+            flagMesh  = fitShipModel(shipModel);
+            ship.add(shipModel);
+            shipStatsRef.current = { maxSpeed: s.maxSpeed, accel: s.accel, turnSpeed: s.turnSpeed };
+          } finally {
+            setSwapping(false);
+          }
+        };
 
         // ── Islands ───────────────────────────────────────────────────────
         const rng      = (lo: number, hi: number) => lo + Math.random()*(hi-lo);
@@ -370,6 +413,18 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
               spire.position.set(Math.cos(ang)*r,h/2,Math.sin(ang)*r); spire.rotation.y=rng(0,Math.PI); spire.castShadow=true; g.add(spire);
             }
           }
+
+          // ── Dock pier (every island) ──────────────────────────────────────
+          const da  = isl.dockAngle;
+          const pCX = Math.sin(da) * (isl.radius * 1.05 + PIER_LEN / 2);
+          const pCZ = Math.cos(da) * (isl.radius * 1.05 + PIER_LEN / 2);
+          const pier = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.5, PIER_LEN), woodI);
+          pier.position.set(pCX, 0.25, pCZ); pier.rotation.y = da; pier.castShadow = true; g.add(pier);
+          for (let p = 0; p < 5; p++) {
+            const t   = (p / 4) * PIER_LEN - PIER_LEN / 2;
+            const plg = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 4.5, 6), woodI);
+            plg.position.set(pCX + Math.sin(da)*t, -2, pCZ + Math.cos(da)*t); g.add(plg);
+          }
           scene.add(g);
         }
 
@@ -449,6 +504,31 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         const keys = new Set<string>();
         const onKeyDown = (e: KeyboardEvent) => {
           if (!playModeRef.current) return;
+          if (e.key === 'd' || e.key === 'D') {
+            if (dockedRef.current) {
+              dockedRef.current = false; setDocked(false);
+            } else {
+              let nearest: IslandDef | null = null, nearestDist = Infinity;
+              for (const isl of ISLANDS) {
+                const d = Math.sqrt((ship.position.x-isl.x)**2 + (ship.position.z-isl.z)**2);
+                if (d < nearestDist) { nearestDist = d; nearest = isl; }
+              }
+              if (nearest && nearestDist < nearest.radius + PIER_LEN + 22) {
+                const da = nearest.dockAngle;
+                dockedPosRef.current = {
+                  x: nearest.x + Math.sin(da) * (nearest.radius * 1.05 + PIER_LEN + 6),
+                  z: nearest.z + Math.cos(da) * (nearest.radius * 1.05 + PIER_LEN + 6),
+                  angle: da + Math.PI,
+                };
+                ship.position.x = dockedPosRef.current.x;
+                ship.position.z = dockedPosRef.current.z;
+                ship.rotation.y = dockedPosRef.current.angle;
+                shipSpeed = 0;
+                dockedRef.current = true; setDocked(true);
+              }
+            }
+            return;
+          }
           keys.add(e.key);
           if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
         };
@@ -553,84 +633,127 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             const fwd  = keys.has("ArrowUp")    || keys.has("w") || keys.has("W") || tk.has("ArrowUp");
             const back = keys.has("ArrowDown")  || keys.has("s") || keys.has("S") || tk.has("ArrowDown");
             const left = keys.has("ArrowLeft")  || keys.has("a") || keys.has("A") || tk.has("ArrowLeft");
-            const rgt  = keys.has("ArrowRight") || keys.has("d") || keys.has("D") || tk.has("ArrowRight");
+            const rgt  = keys.has("ArrowRight") || tk.has("ArrowRight");
 
-            if (fwd)       shipSpeed = Math.min(shipSpeed + ACCEL, MAX_SPEED);
-            else if (back) shipSpeed = Math.max(shipSpeed - ACCEL*2, -MAX_SPEED*0.25);
-            else           shipSpeed *= 0.984;
+            if (dockedRef.current) {
+              // Undock on any throttle / steer input
+              if (fwd || back || left || rgt) { dockedRef.current = false; setDocked(false); }
+              else {
+                ship.position.x = dockedPosRef.current.x;
+                ship.position.z = dockedPosRef.current.z;
+                ship.rotation.y = dockedPosRef.current.angle;
+                shipSpeed = 0;
+              }
+            } else {
+              const { maxSpeed, accel, turnSpeed } = shipStatsRef.current;
+              if (fwd)       shipSpeed = Math.min(shipSpeed + accel, maxSpeed);
+              else if (back) shipSpeed = Math.max(shipSpeed - accel*2, -maxSpeed*0.25);
+              else           shipSpeed *= 0.984;
 
-            const turn = TURN_SPEED * (Math.min(Math.abs(shipSpeed)/MAX_SPEED, 1)*0.8 + 0.2);
-            if (left) shipAngle += turn;
-            if (rgt)  shipAngle -= turn;
+              const turn = turnSpeed * (Math.min(Math.abs(shipSpeed)/maxSpeed, 1)*0.8 + 0.2);
+              if (left) shipAngle += turn;
+              if (rgt)  shipAngle -= turn;
 
-            // Steering: helm drag > canvas drag > keys
-            if (drag.active) {
-              if (drag.isTouch) {
-                const xOff = drag.curX - drag.startX;
-                const steerRate = Math.max(-1, Math.min(1, xOff / 55));
-                if (Math.abs(xOff) > 8) shipAngle -= steerRate * turn;
+              // Steering: helm drag > canvas drag > keys
+              if (drag.active) {
+                if (drag.isTouch) {
+                  const xOff = drag.curX - drag.startX;
+                  const steerRate = Math.max(-1, Math.min(1, xOff / 55));
+                  if (Math.abs(xOff) > 8) shipAngle -= steerRate * turn;
+                  helmAngle += (steerRate * 80 - helmAngle) * 0.2;
+                } else {
+                  if (drag.delta !== 0) {
+                    const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
+                    shipAngle -= dragRate * turn;
+                  }
+                  helmAngle += drag.delta;
+                  drag.delta = 0;
+                }
+              } else if (canvasDrag.active) {
+                const xOff = canvasDrag.curX - canvasDrag.startX;
+                const steerRate = Math.max(-1, Math.min(1, xOff / 80));
+                if (Math.abs(xOff) > 10) shipAngle -= steerRate * turn;
                 helmAngle += (steerRate * 80 - helmAngle) * 0.2;
               } else {
-                if (drag.delta !== 0) {
-                  const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
-                  shipAngle -= dragRate * turn;
-                }
-                helmAngle += drag.delta;
-                drag.delta = 0;
+                const helmTarget = rgt ? 90 : left ? -90 : 0;
+                helmAngle += (helmTarget - helmAngle) * 0.12;
               }
-            } else if (canvasDrag.active) {
-              const xOff = canvasDrag.curX - canvasDrag.startX;
-              const steerRate = Math.max(-1, Math.min(1, xOff / 80));
-              if (Math.abs(xOff) > 10) shipAngle -= steerRate * turn;
-              helmAngle += (steerRate * 80 - helmAngle) * 0.2;
-            } else {
-              const helmTarget = rgt ? 90 : left ? -90 : 0;
-              helmAngle += (helmTarget - helmAngle) * 0.12;
+              if (helmImgRef.current) helmImgRef.current.style.transform = `rotate(${helmAngle}deg)`;
             }
-            if (helmImgRef.current) helmImgRef.current.style.transform = `rotate(${helmAngle}deg)`;
           } else {
             // Auto-pilot: gentle serpentine forward sailing
             shipAngle += Math.sin(elapsed * 0.07) * 0.0004;
-            // Nudge back toward center if near boundary
             const dist2 = Math.sqrt(ship.position.x**2 + ship.position.z**2);
             if (dist2 > WORLD_R * 0.82) {
               const toCenter = Math.atan2(-ship.position.x, -ship.position.z);
               const diff = ((toCenter - shipAngle + Math.PI) % (Math.PI*2)) - Math.PI;
               shipAngle += diff * 0.008;
             }
-            shipSpeed += (MAX_SPEED * 0.2 - shipSpeed) * 0.008;
+            shipSpeed += (shipStatsRef.current.maxSpeed * 0.2 - shipSpeed) * 0.008;
           }
 
-          ship.position.x += Math.sin(shipAngle) * shipSpeed * dt;
-          ship.position.z += Math.cos(shipAngle) * shipSpeed * dt;
-          ship.rotation.y  = shipAngle;
+          if (!dockedRef.current) {
+            ship.position.x += Math.sin(shipAngle) * shipSpeed * dt;
+            ship.position.z += Math.cos(shipAngle) * shipSpeed * dt;
+            ship.rotation.y  = shipAngle;
 
-          // Boundary
-          if (Math.sqrt(ship.position.x**2 + ship.position.z**2) > WORLD_R) {
-            shipAngle = Math.atan2(ship.position.x, ship.position.z) + Math.PI;
-            ship.position.x = prevX; ship.position.z = prevZ; shipSpeed *= 0.2;
+            // Boundary
+            if (Math.sqrt(ship.position.x**2 + ship.position.z**2) > WORLD_R) {
+              shipAngle = Math.atan2(ship.position.x, ship.position.z) + Math.PI;
+              ship.position.x = prevX; ship.position.z = prevZ; shipSpeed *= 0.2;
+            }
+
+            // Island collisions
+            for (const isl of ISLANDS) {
+              const dx=ship.position.x-isl.x, dz=ship.position.z-isl.z;
+              if (Math.sqrt(dx*dx+dz*dz) < isl.radius+6) {
+                ship.position.x=prevX; ship.position.z=prevZ; shipSpeed*=-0.35;
+              }
+            }
           }
 
-          // Island collisions
+          // Nearest island for UI label / minimap
           let closestName: string|null = null, closestDist = Infinity;
           for (const isl of ISLANDS) {
-            const dx=ship.position.x-isl.x, dz=ship.position.z-isl.z;
-            const d=Math.sqrt(dx*dx+dz*dz);
+            const d = Math.sqrt((ship.position.x-isl.x)**2 + (ship.position.z-isl.z)**2);
             if (d < closestDist) { closestDist=d; closestName=isl.name; }
-            if (d < isl.radius*2+8) { ship.position.x=prevX; ship.position.z=prevZ; shipSpeed*=-0.35; }
           }
+
+          shipPosRef.current = { x: ship.position.x, z: ship.position.z, angle: shipAngle };
 
           if (playModeRef.current) {
-            setNearIsland(closestDist < 100 ? closestName : null);
+            setNearIsland(closestDist < 120 ? closestName : null);
             setHeading(Math.round(((shipAngle*180/Math.PI)%360+360)%360));
-            setSpeedPct(Math.round(Math.abs(shipSpeed)/MAX_SPEED*100));
+            setSpeedPct(Math.round(Math.abs(shipSpeed)/shipStatsRef.current.maxSpeed*100));
           }
 
-          // Bob & rock
-          ship.position.y = 1.5 + Math.sin(elapsed*0.45)*0.4*Math.min(cur.rockMult,2.2);
-          shipModel.rotation.z = (Math.sin(elapsed*0.55)*0.025 + Math.sin(elapsed*1.1)*0.008) * cur.rockMult;
-          shipModel.rotation.x = Math.sin(elapsed*0.40)*0.012*cur.rockMult;
-          if (flagMesh) flagMesh.rotation.y = Math.sin(elapsed*3.5)*0.5;
+          // Bob & rock — multi-frequency wave simulation
+          if (!dockedRef.current) {
+            const rock = cur.rockMult;
+            // Heave: two overlapping swells for natural vertical motion
+            const heave = Math.sin(elapsed*0.45)*0.55 + Math.sin(elapsed*0.73)*0.20 + Math.sin(elapsed*1.15)*0.08;
+            ship.position.y = 0.2 + heave * Math.min(rock * 0.65, 2.2);
+            // Roll (z): primary swell + cross-swell + chop
+            shipModel.rotation.z = (
+              Math.sin(elapsed*0.50)*0.055 +
+              Math.sin(elapsed*0.27)*0.038 +
+              Math.sin(elapsed*1.10)*0.020 +
+              Math.sin(elapsed*1.90)*0.009
+            ) * rock;
+            // Pitch (x): fore-aft nodding, smaller than roll
+            shipModel.rotation.x = (
+              Math.sin(elapsed*0.40)*0.028 +
+              Math.sin(elapsed*0.82)*0.012
+            ) * rock;
+            // Slight yaw drift for liveliness
+            ship.rotation.y = shipAngle + Math.sin(elapsed*0.33)*0.012 * rock;
+          } else {
+            // Docked: gentle idle rock, no heave
+            ship.position.y = 0.2 + Math.sin(elapsed*0.3)*0.06;
+            shipModel.rotation.z = Math.sin(elapsed*0.35)*0.012;
+            shipModel.rotation.x = Math.sin(elapsed*0.28)*0.005;
+          }
+          if (flagMesh) flagMesh.rotation.y = Math.sin(elapsed*3.5)*0.5 * Math.max(0.6, cur.rockMult);
 
           // Camera
           const camH=28+shipSpeed*0.35, camD=52+shipSpeed*0.6;
@@ -699,6 +822,72 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
     return () => { alive = false; disposeAll?.(); };
   }, []);
+
+  // ── Mini-map canvas loop ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (!loaded) return;
+    const canvas = minimapRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const W = canvas.width;
+    const R = W / 2;
+    const scale = (R - 6) / WORLD_R;
+    const TYPE_COLOR: Record<IslandDef['type'], string> = {
+      volcano:'#ff6622', port:'#ffcc44', lighthouse:'#eeeeff',
+      fort:'#aa88ee', ruins:'#cc9966', jungle:'#44bb44', rocks:'#888888',
+    };
+    let animId: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, W, W);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(R, R, R, 0, Math.PI*2); ctx.clip();
+      ctx.fillStyle = 'rgba(0,12,35,0.88)'; ctx.fillRect(0,0,W,W);
+      // world ring
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(R, R, WORLD_R*scale, 0, Math.PI*2); ctx.stroke();
+      // islands
+      for (const isl of ISLANDS) {
+        const mx = R + isl.x*scale, my = R + isl.z*scale;
+        const mr = Math.max(3, isl.radius*scale*0.55);
+        ctx.fillStyle = TYPE_COLOR[isl.type];
+        ctx.globalAlpha = 0.75;
+        ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      // dock key hint dot
+      const { x, z, angle } = shipPosRef.current;
+      // nearby island dock indicator
+      for (const isl of ISLANDS) {
+        const d = Math.sqrt((x-isl.x)**2 + (z-isl.z)**2);
+        if (d < isl.radius + PIER_LEN + 22) {
+          const mx = R + isl.x*scale, my = R + isl.z*scale;
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
+          ctx.beginPath(); ctx.arc(mx, my, Math.max(3, isl.radius*scale*0.55)+3, 0, Math.PI*2); ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+      // ship triangle
+      const sx = R + x*scale, sy = R + z*scale;
+      ctx.save(); ctx.translate(sx, sy); ctx.rotate(angle);
+      ctx.fillStyle = dockedRef.current ? '#44ffcc' : '#ffffff';
+      ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(-3,4); ctx.lineTo(3,4); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      ctx.restore();
+      animId = requestAnimationFrame(draw);
+    };
+    animId = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animId);
+  }, [loaded]);
+
+  const StatBar = ({ label, value }: { label: string; value: number }) => (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[8px] font-mono text-white/30 w-5">{label}</span>
+      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-full bg-cyan-400/50 rounded-full" style={{ width: `${Math.round(value * 100)}%` }} />
+      </div>
+    </div>
+  );
 
   // ── Touch button renderer ──────────────────────────────────────────────────
   const TBtn = ({
@@ -774,10 +963,49 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
                   >{e}</button>
                 ))}
               </div>
+              {/* Ship selector */}
+              {/* Ship selector */}
+              <div className="flex flex-col gap-1 bg-black/55 backdrop-blur-md border border-white/15 rounded-lg p-1.5">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const next = (shipIdx - 1 + SHIPS.length) % SHIPS.length;
+                      setShipIdx(next);
+                      swapShipRef.current?.(next);
+                    }}
+                    disabled={swapping}
+                    className="text-white/60 hover:text-white px-1.5 py-1 rounded cursor-pointer transition-all duration-200 disabled:opacity-30"
+                  >‹</button>
+                  <span className={`text-[11px] font-mono flex-1 text-center transition-opacity duration-200 ${swapping ? "text-white/30 animate-pulse" : "text-white/80"}`}>
+                    {swapping ? "loading…" : SHIPS[shipIdx].name}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const next = (shipIdx + 1) % SHIPS.length;
+                      setShipIdx(next);
+                      swapShipRef.current?.(next);
+                    }}
+                    disabled={swapping}
+                    className="text-white/60 hover:text-white px-1.5 py-1 rounded cursor-pointer transition-all duration-200 disabled:opacity-30"
+                  >›</button>
+                </div>
+                {!swapping && (() => {
+                  const s = SHIPS[shipIdx];
+                  const maxS = Math.max(...SHIPS.map(x => x.maxSpeed));
+                  const maxT = Math.max(...SHIPS.map(x => x.turnSpeed));
+                  return (
+                    <div className="flex flex-col gap-0.5 px-1 pb-0.5">
+                      <span className="text-[9px] font-mono text-white/35 text-center">{s.desc}</span>
+                      <StatBar label="spd" value={s.maxSpeed / maxS} />
+                      <StatBar label="hdl" value={s.turnSpeed / maxT} />
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           )}
 
-          {/* Compass */}
+          {/* Compass + mini map */}
           {loaded && (
             <div className="fixed top-5 right-5 z-50 flex flex-col items-center gap-2">
               <div className="relative w-16 h-16 rounded-full bg-black/55 backdrop-blur-md border border-white/15 flex items-center justify-center">
@@ -797,13 +1025,31 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
                 <div className="h-full bg-cyan-400/60 rounded-full transition-all duration-100" style={{ width:`${speedPct}%` }} />
               </div>
               <span className="text-[9px] font-mono text-white/30">{speedPct}%</span>
+              {/* Mini map */}
+              <div className="relative mt-1">
+                <canvas
+                  ref={minimapRef}
+                  width={140} height={140}
+                  className="rounded-full border border-white/15 opacity-80"
+                />
+                {docked && (
+                  <div className="absolute inset-0 flex items-end justify-center pb-1 pointer-events-none">
+                    <span className="text-[8px] font-mono text-emerald-400/80 bg-black/50 px-1.5 rounded">DOCKED</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Island label */}
-          {nearIsland && loaded && (
+          {/* Island label / dock prompt */}
+          {nearIsland && loaded && !docked && (
             <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono pointer-events-none">
-              🏝️ {nearIsland}
+              🏝️ {nearIsland} <span className="text-white/35 text-xs ml-2">D to dock</span>
+            </div>
+          )}
+          {docked && loaded && (
+            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-emerald-400/30 text-emerald-300/90 text-sm font-mono pointer-events-none">
+              ⚓ Docked at {nearIsland} <span className="text-white/35 text-xs ml-2">D or move to leave</span>
             </div>
           )}
 
@@ -813,6 +1059,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
               <span><span className="text-white/40">↑ W</span> Throttle</span>
               <span><span className="text-white/40">← → / drag helm</span> Steer</span>
               <span><span className="text-white/40">↓ S</span> Brake</span>
+              <span><span className="text-white/40">D</span> Dock / undock</span>
             </div>
           )}
 

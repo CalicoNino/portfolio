@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@source not "../public";
 
 :root {
   /* Updated to Miami sunset colors with more red/orange tones, less purple */
