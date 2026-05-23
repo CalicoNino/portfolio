@@ -11,11 +11,11 @@ export function InfoTooltip({ sketchLink, author, license }: { sketchLink: strin
         title="Attribution"
       >ℹ</button>
       {open && (
-        <div className="absolute z-[200] bottom-full right-0 mb-1.5 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap pointer-events-auto">
-          {author && <div className="text-[10px] font-mono text-white/60 mb-0.5">{author}</div>}
-          {license && <div className="text-[9px] font-mono text-white/35 mb-2">{license}</div>}
+        <div className="absolute z-[200] top-1/2 -translate-y-1/2 left-full ml-2 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap pointer-events-auto">
+          {author && <div className="text-[10px] font-mono text-white/90 mb-0.5">{author}</div>}
+          {license && <div className="text-[9px] font-mono text-white/60 mb-2">{license}</div>}
           <a href={sketchLink} target="_blank" rel="noopener noreferrer"
-            className="text-[10px] font-mono text-cyan-400/80 hover:text-cyan-300 underline"
+            className="text-[10px] font-mono text-cyan-300 hover:text-cyan-200 underline"
           >View on Sketchfab ↗</a>
         </div>
       )}
