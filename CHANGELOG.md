@@ -1,3 +1,16 @@
+## [1.0.1](https://github.com/CalicoNino/portfolio/compare/v1.0.0...v1.0.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* ship stats ref bug, tooltip mobile dismiss, island label pointer events, SVG info icon ([07cb667](https://github.com/CalicoNino/portfolio/commit/07cb66799b039b43911365e5f4a9524f24023966))
+
+
+### Reverts
+
+* back to onClick on tooltip backdrop ([dde9ce8](https://github.com/CalicoNino/portfolio/commit/dde9ce8a5708b0b9e56f8ea968311204012b236b))
+* tooltip back to original position and text brightness ([3abf461](https://github.com/CalicoNino/portfolio/commit/3abf4615e302828dfbebdb34b2dd51c7565a94c7))
+
 # 1.0.0 (2026-05-23)
 
 
