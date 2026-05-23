@@ -332,11 +332,34 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             model.scale.setScalar(sf);
             model.position.set(-sf * center.x, -sf * box.min.y, -sf * center.z);
             model.rotation.y = def.rotY;
+            const cx = isl.x, cz = isl.z, cr = isl.radius;
             model.traverse((child) => {
               const m = child as T.Mesh;
               if (!m.isMesh) return;
               m.castShadow = true; m.receiveShadow = true;
               if (def.smooth) m.geometry.computeVertexNormals();
+              if (def.circular) {
+                const applyClip = (mat: T.Material) => {
+                  const c = (mat as T.MeshStandardMaterial).clone();
+                  c.onBeforeCompile = (shader) => {
+                    shader.uniforms.uCenter = { value: new THREE.Vector2(cx, cz) };
+                    shader.uniforms.uRadius = { value: cr };
+                    shader.vertexShader = 'varying vec3 vWPos;\n' + shader.vertexShader.replace(
+                      '#include <worldpos_vertex>',
+                      '#include <worldpos_vertex>\nvWPos = worldPosition.xyz;'
+                    );
+                    shader.fragmentShader = 'varying vec3 vWPos;\nuniform vec2 uCenter;\nuniform float uRadius;\n' + shader.fragmentShader.replace(
+                      '#include <dithering_fragment>',
+                      'if(length(vWPos.xz - uCenter) > uRadius) discard;\n#include <dithering_fragment>'
+                    );
+                  };
+                  c.needsUpdate = true;
+                  return c;
+                };
+                m.material = Array.isArray(m.material)
+                  ? m.material.map(applyClip)
+                  : applyClip(m.material);
+              }
             });
             const g = new THREE.Group();
             g.position.set(isl.x, def.yOffset ?? 0, isl.z);
