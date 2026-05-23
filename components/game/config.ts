@@ -12,7 +12,6 @@ export const RAIN_COUNT = 1800;
 
 export const SHIPS = [
   { name: "Nave",        path: "/3d/nave_new.glb",                maxSpeed: 22, accel: 0.28, turnSpeed: 0.021, desc: "Balanced",      rotY: 0            },
-  { name: "Pirate",      path: "/3d/pirate_ship.glb",             maxSpeed: 20, accel: 0.24, turnSpeed: 0.034, desc: "Agile",          rotY: 0            },
   { name: "Marauder",    path: "/3d/brown_marauder.glb",          maxSpeed: 16, accel: 0.18, turnSpeed: 0.013, desc: "Slow & sturdy",  rotY: 0            },
   { name: "Corsair",     path: "/3d/The crimson corsair.glb",     maxSpeed: 28, accel: 0.36, turnSpeed: 0.030, desc: "Fast & fierce",  rotY: 0            },
   { name: "Fantasy",     path: "/3d/fantasy_sailing_ship.glb",    maxSpeed: 30, accel: 0.40, turnSpeed: 0.026, desc: "Swift",          rotY: 0            },
@@ -42,7 +41,6 @@ export const ISLANDS: IslandDef[] = [
 ];
 
 export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: number; yOffset?: number }> = {
-  "El Castillo":      { path: "/3d/castle.glb",                         rotY: 0.5,           scale: 0.8               },
   "Fort Santiago":    { path: "/3d/fortress_island.glb",                rotY: 1.5,           scale: 2.0, yOffset: -20 },
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset: -30 },
