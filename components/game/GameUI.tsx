@@ -145,20 +145,68 @@ export function GameUI({
           {/* Compass + speed */}
           {loaded && (
             <div className="fixed top-5 right-5 z-50 flex flex-col items-center gap-2">
-              <div className="relative w-16 h-16 rounded-full bg-black/55 backdrop-blur-md border border-white/15 flex items-center justify-center">
-                <span className="absolute top-1    left-1/2 -translate-x-1/2 text-[8px] font-mono text-white/40">N</span>
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-mono text-white/25">S</span>
-                <span className="absolute left-1   top-1/2  -translate-y-1/2 text-[8px] font-mono text-white/25">W</span>
-                <span className="absolute right-1  top-1/2  -translate-y-1/2 text-[8px] font-mono text-white/25">E</span>
-                <div className="absolute inset-0 flex items-center justify-center" style={{ transform: `rotate(${heading}deg)` }}>
-                  <div className="relative w-0.5 h-12 flex flex-col items-center">
-                    <div className="w-0.5 flex-1 bg-red-400 rounded-full" />
-                    <div className="w-0.5 flex-1 bg-white/35 rounded-full" />
-                  </div>
-                </div>
+              {/* Compass rose */}
+              <div className="relative w-20 h-20">
+                <svg viewBox="0 0 80 80" className="w-full h-full drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  <defs>
+                    <filter id="cShadow">
+                      <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.7" />
+                    </filter>
+                    <radialGradient id="cBg" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="#1a1f2e" stopOpacity="0.92" />
+                      <stop offset="100%" stopColor="#0d1017" stopOpacity="0.97" />
+                    </radialGradient>
+                  </defs>
+
+                  {/* Outer ring */}
+                  <circle cx="40" cy="40" r="38" fill="url(#cBg)" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+
+                  {/* Tick marks */}
+                  {Array.from({ length: 36 }).map((_, i) => {
+                    const a = (i / 36) * Math.PI * 2;
+                    const major = i % 9 === 0;
+                    const r1 = major ? 30 : 32, r2 = 34;
+                    return (
+                      <line key={i}
+                        x1={40 + Math.sin(a) * r1} y1={40 - Math.cos(a) * r1}
+                        x2={40 + Math.sin(a) * r2} y2={40 - Math.cos(a) * r2}
+                        stroke={major ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)"}
+                        strokeWidth={major ? "1" : "0.5"}
+                      />
+                    );
+                  })}
+
+                  {/* Cardinal letters */}
+                  {([["N", 0, 7], ["S", 180, 7], ["E", 90, 7], ["W", 270, 7]] as [string, number, number][]).map(([lbl, deg, r]) => {
+                    const a = (deg * Math.PI) / 180;
+                    return (
+                      <text key={lbl}
+                        x={40 + Math.sin(a) * r} y={40 - Math.cos(a) * r + 3.5}
+                        textAnchor="middle" fontSize="7"
+                        fontFamily="ui-sans-serif,system-ui,sans-serif" fontWeight="700"
+                        fill={lbl === "N" ? "#f87171" : "rgba(255,255,255,0.55)"}
+                        filter="url(#cShadow)"
+                      >{lbl}</text>
+                    );
+                  })}
+
+                  {/* Rotating needle group */}
+                  <g transform={`rotate(${heading} 40 40)`} filter="url(#cShadow)">
+                    {/* North — red diamond */}
+                    <polygon points="40,10 43,40 40,34 37,40" fill="#ef4444" />
+                    <polygon points="40,10 43,40 40,34 37,40" fill="none" stroke="#7f1d1d" strokeWidth="0.4" />
+                    {/* South — white diamond */}
+                    <polygon points="40,70 43,40 40,46 37,40" fill="rgba(255,255,255,0.6)" />
+                    <polygon points="40,70 43,40 40,46 37,40" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.4" />
+                    {/* Centre cap */}
+                    <circle cx="40" cy="40" r="2.5" fill="#e5e7eb" stroke="#6b7280" strokeWidth="0.6" />
+                  </g>
+                </svg>
               </div>
-              <span className="text-[10px] font-mono text-white/45 bg-black/45 px-2 py-0.5 rounded">{heading}°</span>
-              <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
+
+              <span className="text-[10px] font-mono text-white/50 bg-black/50 px-2 py-0.5 rounded tracking-wider">{heading}°</span>
+              <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-cyan-400/60 rounded-full transition-all duration-100" style={{ width: `${speedPct}%` }} />
               </div>
               <span className="text-[9px] font-mono text-white/30">{speedPct}%</span>

@@ -45,7 +45,7 @@ export const ISLAND_GLB: Record<string, { path: string; rotY: number; scale: num
   "Puerto Fuego":     { path: "/3d/issum_the_town_on_capital_isle.glb", rotY: 0,             scale: 1.0, yOffset:  -8 },
   "Los Peñascos":     { path: "/3d/low_poly_island.glb",                rotY: 0,             scale: 2.0, yOffset:  -8, smooth: true, circular: true },
   "La Selva":         { path: "/3d/low_poly_medieval_island.glb",       rotY: 0,             scale: 2.0, yOffset:  -8 },
-  "Isla del Faro":    { path: "/3d/the_mill.glb",                       rotY: 0,             scale: 3.0               },
+  "Isla del Faro":    { path: "/3d/the_mill.glb",                       rotY: 0,             scale: 3.0, yOffset:  -6 },
   "El Galeón":        { path: "/3d/pirate_ship_rigged.glb",             rotY: Math.PI * 0.3, scale: 1.2, noCenter: true },
 };
 
