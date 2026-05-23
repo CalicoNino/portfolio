@@ -336,6 +336,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
               const m = child as T.Mesh;
               if (!m.isMesh) return;
               m.castShadow = true; m.receiveShadow = true;
+              if (def.smooth) m.geometry.computeVertexNormals();
             });
             const g = new THREE.Group();
             g.position.set(isl.x, def.yOffset ?? 0, isl.z);
