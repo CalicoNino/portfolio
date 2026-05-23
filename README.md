@@ -2,14 +2,13 @@
 
 > *I turn `unwrap()` calls into `Result<features, code>`.*
 
-[![Deploy to GitHub Pages](https://github.com/CalicoNino/portfolio/actions/workflows/deploy.yml/badge.svg)](https://github.com/CalicoNino/portfolio/actions/workflows/deploy.yml)
 [![React Router](https://img.shields.io/badge/React_Router-v7-CA4245?logo=reactrouter&logoColor=white)](https://reactrouter.com)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Bun](https://img.shields.io/badge/Bun-latest-fbf0df?logo=bun&logoColor=black)](https://bun.sh)
 
-**[→ Live](https://caliconino.github.io/portfolio)**
+**[→ Live](https://caliconino.dev)**
 
 ---
 
@@ -34,13 +33,13 @@ Theme colors are OKLch CSS custom properties swapped at runtime — zero re-rend
 
 | Layer | Tech |
 |---|---|
-| Framework | React Router v7 (framework mode, SSG) |
+| Framework | React Router v7 (SSR + prerendering) |
 | Build tool | Vite 6 |
 | Styling | Tailwind CSS v4 + OKLch color system |
 | Language | TypeScript 5 |
 | Runtime / package manager | Bun |
 | Blog content | Markdown + gray-matter |
-| Deployment | GitHub Pages via GitHub Actions |
+| 3D / game | Three.js + WebGL |
 
 ---
 
@@ -50,9 +49,10 @@ Theme colors are OKLch CSS custom properties swapped at runtime — zero re-rend
 /                    → Portfolio (hero, work, projects, thoughts, connect)
 /blog                → Blog listing
 /blog/:slug          → Blog post (reads from content/*.md at build time)
+/travel              → Interactive 3D pirate sailing game
 ```
 
-All three routes are **prerendered to static HTML** at build time. The blog loader reads markdown files from `content/` during the build and embeds the rendered content — no server required at runtime.
+The home page, blog listing, and all blog posts are **prerendered to static HTML** at build time. The blog loader reads markdown files from `content/` during the build and embeds the rendered content. The `/travel` route renders server-side on demand.
 
 ---
 
@@ -64,7 +64,7 @@ bun run dev       # → http://localhost:5173
 ```
 
 ```bash
-bun run build     # prerender all routes to build/client/
+bun run build     # prerender + SSR bundle
 bun run start     # serve the SSR build locally
 bun run typecheck # react-router typegen + tsc
 ```
@@ -81,21 +81,28 @@ bun run typecheck # react-router typegen + tsc
 │   └── routes/
 │       ├── home.tsx          # /
 │       ├── blog.tsx          # /blog
-│       └── blog.$slug.tsx    # /blog/:slug  (has loader → reads markdown)
+│       ├── blog.$slug.tsx    # /blog/:slug  (has loader → reads markdown)
+│       └── travel.tsx        # /travel (pirate sailing game)
 ├── components/
+│   ├── pirate-sailing-game.tsx
+│   ├── game/
+│   │   ├── config.ts         # Ships, islands, weather constants
+│   │   ├── build-islands.ts  # Procedural island geometry
+│   │   └── GameUI.tsx        # React HUD overlay
 │   ├── hero-section.tsx
 │   ├── work-section.tsx
 │   ├── projects-section.tsx
 │   ├── thoughts-section.tsx
 │   ├── connect-section.tsx
-│   ├── footer.tsx
-│   └── icons/
+│   └── footer.tsx
 ├── content/                  # Markdown blog posts
 ├── data/                     # personal.json, work.json, projects.json, blog-posts.json
 ├── lib/
 │   ├── themes.ts             # 6 language theme definitions
 │   └── blog.ts               # Markdown reader (server/build-time only)
-├── react-router.config.ts    # SSG prerender config
+├── public/
+│   └── 3d/                   # GLB ship and island models (Git LFS)
+├── react-router.config.ts    # SSR + prerender config
 └── vite.config.ts
 ```
 
@@ -133,18 +140,17 @@ Your content here...
 }
 ```
 
-3. Push to `main` — the workflow prebuilds the new route and deploys automatically.
+3. Push to `main` — the release workflow triggers semantic-release, which creates a GitHub release and tags the version.
 
 ---
 
-## Deployment
+## Releases
 
-Pushes to `main` trigger the GitHub Actions workflow which:
+Releases are automated via [semantic-release](https://semantic-release.gitbook.io) on every push to `main`. Commit messages follow [Conventional Commits](https://www.conventionalcommits.org):
 
-1. Installs deps with `bun install --frozen-lockfile`
-2. Detects the GitHub Pages base path (handles project vs. user/org pages automatically)
-3. Runs `bun run build` — prerenders all routes to `build/client/`
-4. Deploys `build/client/` to GitHub Pages
-
-To enable for the first time: **Settings → Pages → Source → GitHub Actions**
-
+| Prefix | Effect |
+|---|---|
+| `fix:` | patch release |
+| `feat:` | minor release |
+| `feat!:` / `BREAKING CHANGE:` | major release |
+| `chore:`, `docs:`, `refactor:` | no release |
