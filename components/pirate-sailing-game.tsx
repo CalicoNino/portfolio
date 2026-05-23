@@ -286,16 +286,18 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         // ── DEBUG: island radius rings ────────────────────────────────────────
         const SEG = 64;
-        const radiusMat  = new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.7 });
-        const threshMat  = new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.4 });
+        const radiusMat = new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.9, depthTest: false });
+        const threshMat = new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.6, depthTest: false });
         for (const isl of ISLANDS) {
           const makeRing = (r: number, mat: T.LineBasicMaterial) => {
             const pts: T.Vector3[] = [];
             for (let i = 0; i <= SEG; i++) {
               const a = (i / SEG) * Math.PI * 2;
-              pts.push(new THREE.Vector3(isl.x + Math.cos(a) * r, 1, isl.z + Math.sin(a) * r));
+              pts.push(new THREE.Vector3(isl.x + Math.cos(a) * r, 6, isl.z + Math.sin(a) * r));
             }
-            return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+            line.renderOrder = 999;
+            return line;
           };
           scene.add(makeRing(isl.radius, radiusMat));
           scene.add(makeRing(isl.radius + 6, threshMat));
