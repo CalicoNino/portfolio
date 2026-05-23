@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
 
 const TIPS = [
   "Use WASD or arrow keys to sail",
@@ -21,11 +20,7 @@ const CSS = `
 @keyframes ls-compass{ 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 `;
 
-interface Props {
-  onBack?: () => void;
-}
-
-export function LoadingScreen({ onBack }: Props) {
+export function LoadingScreen() {
   const [tip, setTip]   = useState(0);
   const [dots, setDots] = useState(0);
 
@@ -86,24 +81,6 @@ export function LoadingScreen({ onBack }: Props) {
         </svg>
       </div>
 
-      {/* Back button — re-enable pointer events for this element only */}
-      <div className="absolute top-5 left-5 pointer-events-auto">
-        {onBack ? (
-          <button
-            onClick={onBack}
-            className="text-white/40 font-mono text-xs hover:text-white/70 transition-colors cursor-pointer tracking-widest drop-shadow-[0_1px_4px_rgba(0,0,0,1)]"
-          >
-            ← BACK
-          </button>
-        ) : (
-          <Link
-            to="/"
-            className="text-white/40 font-mono text-xs hover:text-white/70 transition-colors tracking-widest drop-shadow-[0_1px_4px_rgba(0,0,0,1)]"
-          >
-            ← BACK
-          </Link>
-        )}
-      </div>
     </div>
   );
 }

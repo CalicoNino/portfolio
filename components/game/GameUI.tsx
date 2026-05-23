@@ -212,7 +212,7 @@ export function GameUI({
                 }
               </div>
             ) : (
-              <LoadingScreen onBack={onExitPlay} />
+              <LoadingScreen />
             )
           )}
         </>
