@@ -18,9 +18,16 @@ export function InfoTooltip({ sketchLink, author, license }: { sketchLink: strin
     <div className="relative flex-shrink-0">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-        className="text-white/30 hover:text-white/60 text-[11px] w-4 h-4 flex items-center justify-center transition-colors cursor-pointer leading-none"
+        onTouchEnd={(e) => e.stopPropagation()}
+        className="text-white/30 hover:text-white/60 w-4 h-4 flex items-center justify-center transition-colors cursor-pointer"
         title="Attribution"
-      >ℹ</button>
+      >
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+          <circle cx="8" cy="8" r="6.5" />
+          <line x1="8" y1="7" x2="8" y2="11.5" />
+          <circle cx="8" cy="4.75" r="0.6" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}

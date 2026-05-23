@@ -148,11 +148,11 @@ export function buildProceduralIslands(
     cg.position.set(x, y, z); cg.rotation.y = ry;
     const body = new THREE.Mesh(box(1.2, 1.2, 1.2), M.wood);
     body.castShadow = true; cg.add(body);
-    for (const [a, b] of [[-0.6, 0], [0.6, 0]] as [number, number][]) {
+    for (const [a] of [[-0.6, 0], [0.6, 0]] as [number, number][]) {
       const plank = new THREE.Mesh(box(0.08, 1.22, 1.22), M.woodDk);
       plank.position.x = a; cg.add(plank);
     }
-    for (const [a, b] of [[0, -0.6], [0, 0.6]] as [number, number][]) {
+    for (const [, b] of [[0, -0.6], [0, 0.6]] as [number, number][]) {
       const plank = new THREE.Mesh(box(1.24, 0.08, 1.22), M.woodDk);
       plank.position.y = b; cg.add(plank);
     }

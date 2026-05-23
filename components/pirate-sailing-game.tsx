@@ -16,6 +16,12 @@ interface PirateSailingGameProps {
 }
 
 export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailingGameProps) {
+  const initialShipIdx = (() => {
+    if (typeof window === "undefined") return 0;
+    const s = parseInt(localStorage.getItem("shipIdx") ?? "0", 10);
+    return s >= 0 && s < SHIPS.length ? s : 0;
+  })();
+
   const mountRef      = useRef<HTMLDivElement>(null);
   const helmImgRef    = useRef<HTMLImageElement>(null);
   const touchKeysRef  = useRef(new Set<string>());
@@ -23,7 +29,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const helmDragRef   = useRef({ active: false, prevX: 0, delta: 0, startX: 0, startY: 0, curX: 0, curY: 0, isTouch: false });
   const canvasDragRef = useRef({ active: false, startX: 0, startY: 0, curX: 0, curY: 0 });
   const swapShipRef   = useRef<((idx: number) => Promise<void>) | null>(null);
-  const shipStatsRef  = useRef({ maxSpeed: 0, accel: 0, turnSpeed: 0 });
+  const shipStatsRef  = useRef({
+    maxSpeed:  SHIPS[initialShipIdx].maxSpeed,
+    accel:     SHIPS[initialShipIdx].accel,
+    turnSpeed: SHIPS[initialShipIdx].turnSpeed,
+  });
   const shipPosRef    = useRef({ x: 0, z: 0, angle: 0 });
   const todRef        = useRef<TimeOfDay>("day");
   const wxRef         = useRef<Weather>("calm");
@@ -40,22 +50,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const [errMsg,       setErrMsg]       = useState<string | null>(null);
   const [swapping,   setSwapping]   = useState(false);
   const [canvasJoystick, setCanvasJoystick] = useState<{ cx: number; cy: number; x: number; y: number } | null>(null);
-  const [shipIdx, setShipIdx] = useState(() => {
-    if (typeof window === "undefined") return 0;
-    const s = parseInt(localStorage.getItem("shipIdx") ?? "0", 10);
-    return s >= 0 && s < SHIPS.length ? s : 0;
-  });
-
-  const initialShipIdx = (() => {
-    if (typeof window === "undefined") return 0;
-    const s = parseInt(localStorage.getItem("shipIdx") ?? "0", 10);
-    return s >= 0 && s < SHIPS.length ? s : 0;
-  })();
-  shipStatsRef.current = {
-    maxSpeed:  SHIPS[initialShipIdx].maxSpeed,
-    accel:     SHIPS[initialShipIdx].accel,
-    turnSpeed: SHIPS[initialShipIdx].turnSpeed,
-  };
+  const [shipIdx, setShipIdx] = useState(initialShipIdx);
 
   const setTimeOfDay = (v: TimeOfDay) => { todRef.current = v; setTodUI(v); };
   const setWeather   = (v: Weather)   => { wxRef.current  = v; setWxUI(v); };

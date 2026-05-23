@@ -183,10 +183,12 @@ export function GameUI({
 
           {/* Nearby island label */}
           {nearIsland && loaded && (
-            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono">
+            <div className="fixed bottom-48 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-2 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white/80 text-sm font-mono pointer-events-none">
               🏝️ {nearIsland}
               {ISLAND_GLB[nearIsland]?.sketchLink && (
-                <InfoTooltip sketchLink={ISLAND_GLB[nearIsland].sketchLink!} author={ISLAND_GLB[nearIsland].author} license={ISLAND_GLB[nearIsland].license} />
+                <span className="pointer-events-auto">
+                  <InfoTooltip sketchLink={ISLAND_GLB[nearIsland].sketchLink!} author={ISLAND_GLB[nearIsland].author} license={ISLAND_GLB[nearIsland].license} />
+                </span>
               )}
             </div>
           )}
