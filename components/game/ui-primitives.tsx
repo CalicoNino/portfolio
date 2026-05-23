@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function InfoTooltip({ sketchLink, author, license }: { sketchLink: string; author?: string; license?: string }) {
+export function InfoTooltip({ sketchLink, author, license, position = "right" }: { sketchLink: string; author?: string; license?: string; position?: "right" | "top" }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function InfoTooltip({ sketchLink, author, license }: { sketchLink: strin
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute z-[200] top-1/2 -translate-y-1/2 left-full ml-2 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap"
+          className={`absolute z-[200] bg-black/90 backdrop-blur-md border border-white/20 rounded-lg p-2.5 shadow-xl whitespace-nowrap ${position === "top" ? "bottom-full left-1/2 -translate-x-1/2 mb-2" : "top-1/2 -translate-y-1/2 left-full ml-2"}`}
         >
           {author && <div className="text-[10px] font-mono text-white/60 mb-0.5">{author}</div>}
           {license && <div className="text-[9px] font-mono text-white/35 mb-2">{license}</div>}

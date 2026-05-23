@@ -187,7 +187,7 @@ export function GameUI({
               🏝️ {nearIsland}
               {ISLAND_GLB[nearIsland]?.sketchLink && (
                 <span className="pointer-events-auto">
-                  <InfoTooltip sketchLink={ISLAND_GLB[nearIsland].sketchLink!} author={ISLAND_GLB[nearIsland].author} license={ISLAND_GLB[nearIsland].license} />
+                  <InfoTooltip sketchLink={ISLAND_GLB[nearIsland].sketchLink!} author={ISLAND_GLB[nearIsland].author} license={ISLAND_GLB[nearIsland].license} position="top" />
                 </span>
               )}
             </div>
