@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/CalicoNino/portfolio/compare/v1.0.1...v1.1.0) (2026-06-05)
+
+
+### Features
+
+* add Olympus Volleyball project, uniform card heights, fix GitHub handle and duplicate arrow ([f91175e](https://github.com/CalicoNino/portfolio/commit/f91175eecfb25de9a7066d4f4b231df9b5593fed))
+
 ## [1.0.1](https://github.com/CalicoNino/portfolio/compare/v1.0.0...v1.0.1) (2026-05-23)
 
 
