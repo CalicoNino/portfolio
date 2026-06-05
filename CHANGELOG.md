@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/CalicoNino/portfolio/compare/v1.2.0...v1.3.0) (2026-06-05)
+
+
+### Features
+
+* add pickup feedback animations for collectible score ([3b28d94](https://github.com/CalicoNino/portfolio/commit/3b28d948f97461b0b1a041338157771792be91e6))
+
 # [1.2.0](https://github.com/CalicoNino/portfolio/compare/v1.1.0...v1.2.0) (2026-06-05)
 
 
