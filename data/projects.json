@@ -6,5 +6,13 @@
     "link": "/?sails=true",
     "status": "Live",
     "gradient": "from-primary/20 to-accent/20"
+  },
+  {
+    "title": "Olympus Volleyball",
+    "description": "Platform for a volleyball league and social club. Members join teams and play in tournaments, with team management, scheduling, and match tracking across a web admin dashboard and a player-facing mobile app.",
+    "tech": ["Next.js", "React", "Expo", "Bun", "Supabase", "Tailwind"],
+    "link": "https://www.olympusvolleyball.com/",
+    "status": "Live",
+    "gradient": "from-accent/20 to-primary/20"
   }
 ]

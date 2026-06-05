@@ -75,7 +75,7 @@ export const ConnectSection = ({
           {[
             {
               name: "GitHub",
-              handle: "@caliconino",
+              handle: "@CalicoNino",
               url: personalData.social.github,
             },
             // {
