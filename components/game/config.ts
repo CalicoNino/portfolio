@@ -10,6 +10,13 @@ export interface IslandDef {
 export const WORLD_R    = 720;
 export const RAIN_COUNT = 1800;
 
+// ── Floating collectibles (crates & treasure chests) ──────────────────────────
+export const COLLECTIBLE_COUNT = 45;   // how many float in the water at once
+export const COLLECT_RADIUS    = 13;   // ship proximity to scoop one up
+export const CRATE_POINTS      = 1;
+export const CHEST_POINTS      = 5;
+export const CHEST_CHANCE      = 0.25; // fraction of collectibles that are chests
+
 export const SHIPS = [
   { name: "Nave",        path: "/3d/nave_new.glb",                maxSpeed: 22, accel: 0.28, turnSpeed: 0.021, desc: "Balanced",      rotY: 0,           yOffset:  0 },
   { name: "Marauder",    path: "/3d/brown_marauder.glb",          maxSpeed: 16, accel: 0.18, turnSpeed: 0.013, desc: "Slow & sturdy",  rotY: 0,           yOffset:  0, sketchLink: "https://skfb.ly/pHzHS",  author: "havoc2-1",    license: "CC BY 4.0" },

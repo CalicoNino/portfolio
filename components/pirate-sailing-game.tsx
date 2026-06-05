@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type * as T from "three";
 import { buildProceduralIslands } from "./game/build-islands";
+import { buildCollectibles } from "./game/collectibles";
 import {
   ISLAND_GLB, ISLANDS, RAIN_COUNT, SHIPS, WEATHER_PRESETS, WORLD_R,
   type TimeOfDay, type Weather,
@@ -35,6 +36,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
     turnSpeed: SHIPS[initialShipIdx].turnSpeed,
   });
   const shipPosRef    = useRef({ x: 0, z: 0, angle: 0 });
+  const scoreRef      = useRef(0);
   const todRef        = useRef<TimeOfDay>("day");
   const wxRef         = useRef<Weather>("calm");
   const compassResetRef = useRef(false);
@@ -45,6 +47,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const [heading,    setHeading]    = useState(0);
   const [speedPct,   setSpeedPct]   = useState(0);
   const [shipPos,    setShipPos]    = useState({ x: 0, z: 0 });
+  const [score,      setScore]      = useState(0);
   const [loaded,       setLoaded]       = useState(false);
   const [displayReady, setDisplayReady] = useState(false);
   const [errMsg,       setErrMsg]       = useState<string | null>(null);
@@ -283,6 +286,15 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         // ── Islands (procedural geometry) ─────────────────────────────────────
         buildProceduralIslands(scene, ISLANDS, THREE);
+
+        // ── Floating collectibles (crates & treasure chests) ──────────────────
+        const collectibles = buildCollectibles(scene, ISLANDS, WORLD_R, THREE);
+        scoreRef.current = (() => {
+          const s = parseInt(localStorage.getItem("score") ?? "0", 10);
+          return Number.isFinite(s) && s >= 0 ? s : 0;
+        })();
+        setScore(scoreRef.current);
+        let lastScoreSave = 0;
 
         // ── DEBUG: island radius rings (set DEBUG_RINGS = true to enable) ──────
         const DEBUG_RINGS = false;
@@ -639,6 +651,16 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             try { localStorage.setItem("shipPos", JSON.stringify(shipPosRef.current)); } catch {}
           }
 
+          // Floating collectibles — bob always, scoop up only while playing
+          const gained = collectibles.update(elapsed, ship.position.x, ship.position.z, playModeRef.current);
+          if (gained > 0) {
+            scoreRef.current += gained;
+            if (elapsed - lastScoreSave > 2) {
+              lastScoreSave = elapsed;
+              try { localStorage.setItem("score", String(scoreRef.current)); } catch {}
+            }
+          }
+
           // Island fill lights — off in daylight, bright at night
           const fillInt = Math.max(0, (2.0 - cur.dirInt) * 2.0);
           for (const l of islandFillLights) l.intensity = fillInt;
@@ -649,6 +671,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             setHeading(Math.round(((shipAngle * 180 / Math.PI) % 360 + 360) % 360));
             setSpeedPct(Math.round(Math.abs(shipSpeed) / shipStatsRef.current.maxSpeed * 100));
             setShipPos({ x: Math.round(ship.position.x), z: Math.round(ship.position.z) });
+            setScore(scoreRef.current);
           }
 
           // Bob & rock
@@ -722,6 +745,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           renderer.domElement.removeEventListener("pointermove",   onCanvasMove);
           renderer.domElement.removeEventListener("pointerup",     onCanvasUp);
           renderer.domElement.removeEventListener("pointercancel", onCanvasUp);
+          collectibles.dispose();
           gltfCache.forEach((group) => {
             group.traverse((child) => {
               const m = child as T.Mesh;
@@ -765,6 +789,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
       nearIsland={nearIsland}
       heading={heading}
       speedPct={speedPct}
+      score={score}
       pressKey={pressKey}
       releaseKey={releaseKey}
       shipPos={shipPos}

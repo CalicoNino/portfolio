@@ -25,6 +25,7 @@ export interface GameUIProps {
   nearIsland: string | null;
   heading: number;
   speedPct: number;
+  score: number;
   shipPos: { x: number; z: number };
   pressKey: (k: string) => void;
   releaseKey: (k: string) => void;
@@ -38,7 +39,7 @@ export function GameUI({
   mountRef, helmImgRef, playMode, onExitPlay, loaded, errMsg,
   canvasJoystick, todUI, wxUI, onSetTimeOfDay, onSetWeather,
   shipIdx, swapping, onShipPrev, onShipNext,
-  nearIsland, heading, speedPct, shipPos,
+  nearIsland, heading, speedPct, score, shipPos,
   pressKey, releaseKey,
   onHelmPointerDown, onHelmPointerMove, onHelmPointerUp,
   onCompassClick,
@@ -78,6 +79,14 @@ export function GameUI({
             <Link to="/" className="fixed top-5 left-5 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-black/55 backdrop-blur-md border border-white/15 text-white/70 text-sm font-mono hover:border-white/40 hover:text-white transition-all duration-200 cursor-pointer">
               ← Portfolio
             </Link>
+          )}
+
+          {/* Score — treasure collected */}
+          {loaded && (
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-black/55 backdrop-blur-md border border-amber-300/25 text-amber-200/90 font-mono pointer-events-none">
+              <span className="text-base leading-none">🪙</span>
+              <span className="text-sm tabular-nums tracking-wide">{score}</span>
+            </div>
           )}
 
           {/* Environment + ship controls */}
