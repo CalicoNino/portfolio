@@ -48,6 +48,14 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const [speedPct,   setSpeedPct]   = useState(0);
   const [shipPos,    setShipPos]    = useState({ x: 0, z: 0 });
   const [score,      setScore]      = useState(0);
+  const [scorePops,  setScorePops]  = useState<{ id: number; amount: number }[]>([]);
+  const popIdRef = useRef(0);
+
+  const addScorePop = (amount: number) => {
+    const id = ++popIdRef.current;
+    setScorePops((p) => [...p, { id, amount }]);
+    setTimeout(() => setScorePops((p) => p.filter((x) => x.id !== id)), 1000);
+  };
   const [loaded,       setLoaded]       = useState(false);
   const [displayReady, setDisplayReady] = useState(false);
   const [errMsg,       setErrMsg]       = useState<string | null>(null);
@@ -655,6 +663,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           const gained = collectibles.update(elapsed, ship.position.x, ship.position.z, playModeRef.current);
           if (gained > 0) {
             scoreRef.current += gained;
+            if (playModeRef.current) { setScore(scoreRef.current); addScorePop(gained); }
             if (elapsed - lastScoreSave > 2) {
               lastScoreSave = elapsed;
               try { localStorage.setItem("score", String(scoreRef.current)); } catch {}
@@ -790,6 +799,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
       heading={heading}
       speedPct={speedPct}
       score={score}
+      scorePops={scorePops}
       pressKey={pressKey}
       releaseKey={releaseKey}
       shipPos={shipPos}

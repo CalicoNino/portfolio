@@ -26,6 +26,7 @@ export interface GameUIProps {
   heading: number;
   speedPct: number;
   score: number;
+  scorePops: { id: number; amount: number }[];
   shipPos: { x: number; z: number };
   pressKey: (k: string) => void;
   releaseKey: (k: string) => void;
@@ -39,7 +40,7 @@ export function GameUI({
   mountRef, helmImgRef, playMode, onExitPlay, loaded, errMsg,
   canvasJoystick, todUI, wxUI, onSetTimeOfDay, onSetWeather,
   shipIdx, swapping, onShipPrev, onShipNext,
-  nearIsland, heading, speedPct, score, shipPos,
+  nearIsland, heading, speedPct, score, scorePops, shipPos,
   pressKey, releaseKey,
   onHelmPointerDown, onHelmPointerMove, onHelmPointerUp,
   onCompassClick,
@@ -84,10 +85,22 @@ export function GameUI({
           {/* Score — treasure collected */}
           {loaded && (
             <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-black/55 backdrop-blur-md border border-amber-300/25 text-amber-200/90 font-mono pointer-events-none">
-              <span className="text-base leading-none">🪙</span>
-              <span className="text-sm tabular-nums tracking-wide">{score}</span>
+              <div key={score} className="flex items-center gap-2 origin-center animate-score-bump">
+                <span className="text-base leading-none">🪙</span>
+                <span className="text-sm tabular-nums tracking-wide">{score}</span>
+              </div>
             </div>
           )}
+
+          {/* Floating "+N" pickup popups */}
+          {loaded && scorePops.map((p) => (
+            <div
+              key={p.id}
+              className="fixed top-16 left-1/2 z-50 pointer-events-none animate-score-pop font-mono font-bold text-lg text-amber-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"
+            >
+              +{p.amount}
+            </div>
+          ))}
 
           {/* Environment + ship controls */}
           {loaded && (
