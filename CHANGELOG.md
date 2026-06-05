@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/CalicoNino/portfolio/compare/v1.1.0...v1.2.0) (2026-06-05)
+
+
+### Features
+
+* add collectible crates and treasure chests with score ([655844f](https://github.com/CalicoNino/portfolio/commit/655844f4f9a361d862f3b100bff04efe5edacbe5))
+
 # [1.1.0](https://github.com/CalicoNino/portfolio/compare/v1.0.1...v1.1.0) (2026-06-05)
 
 
