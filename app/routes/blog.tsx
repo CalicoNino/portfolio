@@ -1,6 +1,12 @@
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { MetaFunction } from "react-router";
 import { useEffect, useState } from "react";
+import { getAllPosts } from "@/lib/blog";
+
+export async function loader() {
+  // Strip the markdown body — the list page only needs metadata.
+  return getAllPosts().map(({ content: _content, ...meta }) => meta);
+}
 
 export const meta: MetaFunction = () => [
   { title: "Thoughts | Calico Nino" },
@@ -9,10 +15,10 @@ export const meta: MetaFunction = () => [
   { property: "og:description", content: "Writing about code, systems, history, and whatever else is on my mind." },
 ];
 import { themes, type ThemeKey } from "@/lib/themes";
+import { useThemeColors } from "@/lib/use-theme-colors";
 import { PirateIcon } from "@/components/icons/pirate-icon";
 import { SunIcon } from "@/components/icons/sun-icon";
 import { MoonIcon } from "@/components/icons/moon-icon";
-import blogPostsData from "@/data/blog-posts.json";
 
 type Category = "all" | "tech" | "history";
 
@@ -23,6 +29,7 @@ const CATEGORY_LABELS: Record<Category, string> = {
 };
 
 export default function BlogPage() {
+  const posts = useLoaderData<typeof loader>();
   const [isDark, setIsDark] = useState(true);
   const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust");
   const [activeCategory, setActiveCategory] = useState<Category>("all");
@@ -31,29 +38,14 @@ export default function BlogPage() {
     document.documentElement.classList.toggle("dark", isDark);
   }, [isDark]);
 
-  useEffect(() => {
-    const theme = themes[activeTheme];
-    const root = document.documentElement;
-
-    if (isDark) {
-      root.style.setProperty("--primary", theme.colors.primaryDark);
-      root.style.setProperty("--accent", theme.colors.accentDark);
-    } else {
-      root.style.setProperty("--primary", theme.colors.primary);
-      root.style.setProperty("--accent", theme.colors.accent);
-    }
-
-    root.style.setProperty("--bg-1", theme.colors.bg1);
-    root.style.setProperty("--bg-2", theme.colors.bg2);
-    root.style.setProperty("--bg-3", theme.colors.bg3);
-  }, [activeTheme, isDark]);
+  useThemeColors(activeTheme, isDark);
 
   const theme = themes[activeTheme];
 
   const filteredPosts =
     activeCategory === "all"
-      ? blogPostsData
-      : blogPostsData.filter((p) => p.category === activeCategory);
+      ? posts
+      : posts.filter((p) => p.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -144,9 +136,9 @@ export default function BlogPage() {
                 {theme.comment} no posts in this category yet
               </p>
             ) : (
-              filteredPosts.map((post, index) => (
+              filteredPosts.map((post) => (
                 <article
-                  key={index}
+                  key={post.slug}
                   className="group p-4 sm:p-6 lg:p-8 border border-border rounded-lg hover:border-primary hover:bg-card/50 transition-all duration-500"
                 >
                   <Link

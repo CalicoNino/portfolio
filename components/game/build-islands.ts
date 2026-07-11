@@ -58,9 +58,6 @@ export function buildProceduralIslands(
     barrel:  S(0x5a3a14, 0.88),
     iron:    S(0x2a2820, 0.6, 0.5),
     lantern: S(0xffcc44, 0.3, 0, { emissive: new THREE.Color(0xffaa22), emissiveIntensity: 0.6 }),
-    lava:    S(0xff5500, 0.4, 0, { emissive: new THREE.Color(0xff3300), emissiveIntensity: 1.2 }),
-    lavaGlow:S(0xff8800, 0.3, 0, { emissive: new THREE.Color(0xff6600), emissiveIntensity: 0.8 }),
-    obsidian:S(0x1a1614, 0.3, 0.3),
     water:   S(0x1a5a9a, 0.25, 0.15, { transparent: true, opacity: 0.75 }),
   };
 
@@ -248,7 +245,7 @@ export function buildProceduralIslands(
   }
 
   // ── LIGHTHOUSE ───────────────────────────────────────────────────────────────
-  function buildLighthouse(g: T.Group, r: number, rand: ReturnType<typeof seededRng>) {
+  function buildLighthouse(g: T.Group, r: number) {
     // Stone keeper's cottage
     const cottage = add(g, box(7, 5, 6), M.stoneL);
     cottage.position.set(-4.5, 5, 0);
@@ -348,7 +345,7 @@ export function buildProceduralIslands(
   }
 
   // ── FORT ────────────────────────────────────────────────────────────────────
-  function buildFort(g: T.Group, r: number, rand: ReturnType<typeof seededRng>) {
+  function buildFort(g: T.Group, r: number) {
     const wallH = 10, wallR = r * 0.52, bastionR = r * 0.62;
 
     // Interior courtyard ground
@@ -801,12 +798,12 @@ export function buildProceduralIslands(
     buildBase(g, r, isl.type, rand);
 
     switch (isl.type) {
-      case "lighthouse": buildLighthouse(g, r, rand); break;
-      case "fort":       buildFort(g, r, rand); break;
+      case "lighthouse": buildLighthouse(g, r); break;
+      case "fort":       buildFort(g, r); break;
       case "ruins":      buildRuins(g, r, rand); break;
       case "jungle":     buildJungle(g, r, rand); break;
       case "port":       buildPort(g, r, rand); break;
-      case "rocks":      buildRocksIsland(g, r, rand); break;
+      case "rocks":
       case "volcano":    buildRocksIsland(g, r, rand); break;
     }
 

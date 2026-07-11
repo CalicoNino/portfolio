@@ -1,20 +1,20 @@
 import type React from "react";
 import { Link } from "react-router";
+import type { BlogPostMeta } from "@/lib/blog";
 import { themes, type ThemeKey } from "@/lib/themes";
 import { ArrowRightIcon } from "@/components/icons/arrow-right-icon";
-import blogPostsData from "@/data/blog-posts.json";
 
 interface ThoughtsSectionProps {
+  posts: BlogPostMeta[];
   activeTheme: ThemeKey;
-  sectionsRef: React.MutableRefObject<(HTMLElement | null)[]>;
+  sectionsRef: React.RefObject<(HTMLElement | null)[]>;
 }
 
 export const ThoughtsSection = ({
+  posts,
   activeTheme,
   sectionsRef,
 }: ThoughtsSectionProps) => {
-  const blogPosts = blogPostsData.slice(0, 4);
-
   return (
     <section
       id="thoughts"
@@ -41,9 +41,9 @@ export const ThoughtsSection = ({
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {blogPosts.map((post, index) => (
+          {posts.map((post) => (
             <Link
-              key={index}
+              key={post.slug}
               to={`/blog/${post.slug}`}
               className="group p-6 border border-border rounded-lg bg-card/30 backdrop-blur-sm hover:border-primary hover:bg-card/60 hover:shadow-[0_8px_30px_oklch(0.68_0.25_35/0.15)] hover:-translate-y-1 transition-all duration-500 cursor-pointer"
             >

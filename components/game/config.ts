@@ -10,6 +10,10 @@ export interface IslandDef {
 export const WORLD_R    = 720;
 export const RAIN_COUNT = 1800;
 
+export const ISLAND_COLLISION_PAD = 6;   // ship is pushed out at island radius + pad
+export const ISLAND_SPAWN_PAD     = 8;   // saved positions inside radius + pad are rejected
+export const NEAR_ISLAND_DIST     = 120; // island name label shows within this distance
+
 // ── Floating collectibles (crates & treasure chests) ──────────────────────────
 export const COLLECTIBLE_COUNT = 45;   // how many float in the water at once
 export const COLLECT_RADIUS    = 13;   // ship proximity to scoop one up

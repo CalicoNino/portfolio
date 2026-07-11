@@ -3,10 +3,12 @@ import type * as T from "three";
 import { buildProceduralIslands } from "./game/build-islands";
 import { buildCollectibles } from "./game/collectibles";
 import {
-  ISLAND_GLB, ISLANDS, RAIN_COUNT, SHIPS, WEATHER_PRESETS, WORLD_R,
+  ISLAND_COLLISION_PAD, ISLAND_GLB, ISLAND_SPAWN_PAD, ISLANDS, NEAR_ISLAND_DIST,
+  RAIN_COUNT, SHIPS, WEATHER_PRESETS, WORLD_R,
   type TimeOfDay, type Weather,
 } from "./game/config";
 import { GameUI } from "./game/GameUI";
+import { storageGet, storageSet } from "./game/storage";
 
 interface PirateSailingGameProps {
   /** true (default) = full interactive game with all UI.
@@ -18,8 +20,7 @@ interface PirateSailingGameProps {
 
 export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailingGameProps) {
   const initialShipIdx = (() => {
-    if (typeof window === "undefined") return 0;
-    const s = parseInt(localStorage.getItem("shipIdx") ?? "0", 10);
+    const s = parseInt(storageGet("shipIdx") ?? "0", 10);
     return s >= 0 && s < SHIPS.length ? s : 0;
   })();
 
@@ -66,19 +67,16 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
   const setTimeOfDay = (v: TimeOfDay) => { todRef.current = v; setTodUI(v); };
   const setWeather   = (v: Weather)   => { wxRef.current  = v; setWxUI(v); };
 
-  const pressKey   = (k: string) => touchKeysRef.current.add(k);
-  const releaseKey = (k: string) => touchKeysRef.current.delete(k);
-
   const onShipPrev = () => {
     const next = (shipIdx - 1 + SHIPS.length) % SHIPS.length;
     setShipIdx(next);
-    localStorage.setItem("shipIdx", String(next));
+    storageSet("shipIdx", String(next));
     swapShipRef.current?.(next);
   };
   const onShipNext = () => {
     const next = (shipIdx + 1) % SHIPS.length;
     setShipIdx(next);
-    localStorage.setItem("shipIdx", String(next));
+    storageSet("shipIdx", String(next));
     swapShipRef.current?.(next);
   };
 
@@ -260,7 +258,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             if (!(child as T.Mesh).isMesh) return;
             const m = child as T.Mesh;
             m.castShadow = true; m.receiveShadow = true;
-            if (!flag && m.position.y > size.y * scaleFactor * 0.7) flag = m;
+            // Child positions are in the model's (unscaled) local space, so
+            // compare against the unscaled bounding box height.
+            if (!flag && m.position.y > box.min.y + size.y * 0.7) flag = m;
           });
           return flag;
         };
@@ -275,12 +275,14 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         const ship = new THREE.Group();
         ship.add(shipModel); ship.position.set(0, 0.2, 0); scene.add(ship);
 
+        let swapSeq = 0;
         swapShipRef.current = async (idx: number) => {
+          const token = ++swapSeq; // rapid clicks: only the latest request wins
           setSwapping(true);
           try {
             const s = SHIPS[idx];
             const newScene = await loadWithCache(s.path);
-            if (!alive) return;
+            if (!alive || token !== swapSeq) return;
             ship.remove(shipModel);
             shipModel = newScene;
             shipModel.rotation.y = s.rotY;
@@ -288,7 +290,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             ship.add(shipModel);
             shipStatsRef.current = { maxSpeed: s.maxSpeed, accel: s.accel, turnSpeed: s.turnSpeed };
           } finally {
-            setSwapping(false);
+            if (token === swapSeq) setSwapping(false);
           }
         };
 
@@ -298,7 +300,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
         // ── Floating collectibles (crates & treasure chests) ──────────────────
         const collectibles = buildCollectibles(scene, ISLANDS, WORLD_R, THREE);
         scoreRef.current = (() => {
-          const s = parseInt(localStorage.getItem("score") ?? "0", 10);
+          const s = parseInt(storageGet("score") ?? "0", 10);
           return Number.isFinite(s) && s >= 0 ? s : 0;
         })();
         setScore(scoreRef.current);
@@ -427,15 +429,25 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           },
         };
 
-        // ── Lerp state ────────────────────────────────────────────────────────
+        // ── Lerp state (starts at the day preset so tweaks live in one place) ─
+        const ENV_COLOR_KEYS = [
+          "skyTop", "skyMid", "skyHoriz", "fogColor", "ambColor", "dirColor", "waterColor",
+        ] as const;
+        const ENV_SCALAR_KEYS = [
+          "fogDensity", "ambInt", "dirInt", "exposure",
+          "starOpacity", "sunOpacity", "moonOpacity", "moonGlow",
+          "waveDist", "waveSpeed", "rockMult", "rainOp",
+        ] as const;
         const cur = {
-          skyTop: C(0x0a3d8f), skyMid: C(0x5ba3d9), skyHoriz: C(0xe8c87a),
-          fogColor: C(0xa8c8e8), fogDensity: 0.0018,
-          ambColor: C(0xffd090), ambInt: 1.2,
-          dirColor: C(0xfff5e0), dirInt: 2.5, dirPos: SUN_DAY_POS.clone(),
-          waterColor: C(0x006994), waveDist: 2.5, waveSpeed: 0.4,
-          exposure: 1.0, starOp: 0.0, sunOp: 1.0, sunPos: SUN_DAY_POS.clone(),
-          moonOp: 0.0, moonGlow: 0.0, rockMult: 1.0, rainOp: 0.0,
+          skyTop: TP.day.skyTop.clone(), skyMid: TP.day.skyMid.clone(), skyHoriz: TP.day.skyHoriz.clone(),
+          fogColor: TP.day.fogColor.clone(), fogDensity: TP.day.fogDensity,
+          ambColor: TP.day.ambColor.clone(), ambInt: TP.day.ambInt,
+          dirColor: TP.day.dirColor.clone(), dirInt: TP.day.dirInt, dirPos: SUN_DAY_POS.clone(),
+          waterColor: TP.day.waterColor.clone(), waveDist: TP.day.waveDistBase, waveSpeed: TP.day.waveSpeedBase,
+          exposure: TP.day.exposure, starOpacity: TP.day.starOpacity,
+          sunOpacity: TP.day.sunOpacity, sunPos: SUN_DAY_POS.clone(),
+          moonOpacity: TP.day.moonOpacity, moonGlow: TP.day.moonGlow,
+          rockMult: 1.0, rainOp: 0.0,
         };
 
         // ── Physics state ─────────────────────────────────────────────────────
@@ -447,7 +459,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             if (p.x**2 + p.z**2 > WORLD_R**2) return null;
             for (const isl of ISLANDS) {
               const dx = p.x - isl.x, dz = p.z - isl.z;
-              if (dx*dx + dz*dz < (isl.radius + 8)**2) return null;
+              if (dx*dx + dz*dz < (isl.radius + ISLAND_SPAWN_PAD)**2) return null;
             }
             return p;
           } catch { return null; }
@@ -469,12 +481,14 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         // ── Keyboard ──────────────────────────────────────────────────────────
         const keys = new Set<string>();
+        // Normalize letter keys so Shift/CapsLock can't strand a "stuck" key.
+        const normKey = (k: string) => (k.length === 1 ? k.toLowerCase() : k);
         const onKeyDown = (e: KeyboardEvent) => {
           if (!playModeRef.current) return;
-          keys.add(e.key);
+          keys.add(normKey(e.key));
           if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
         };
-        const onKeyUp = (e: KeyboardEvent) => keys.delete(e.key);
+        const onKeyUp = (e: KeyboardEvent) => keys.delete(normKey(e.key));
         window.addEventListener("keydown", onKeyDown);
         window.addEventListener("keyup",   onKeyUp);
 
@@ -488,25 +502,20 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           const dt = Math.min(clock.getDelta(), 0.05);
           elapsed += dt;
 
-          // Lerp environment presets
+          // Lerp environment presets (framerate-independent: 1 - e^(-k·dt))
           const todT = TP[todRef.current];
           const wxT  = WEATHER_PRESETS[wxRef.current];
-          const lf   = 0.018;
-          cur.skyTop.lerp(todT.skyTop, lf); cur.skyMid.lerp(todT.skyMid, lf); cur.skyHoriz.lerp(todT.skyHoriz, lf);
-          cur.fogColor.lerp(todT.fogColor, lf);
-          cur.fogDensity += (todT.fogDensity * wxT.fogMult - cur.fogDensity) * lf;
-          cur.ambColor.lerp(todT.ambColor, lf); cur.ambInt += (todT.ambInt - cur.ambInt) * lf;
-          cur.dirColor.lerp(todT.dirColor, lf); cur.dirInt += (todT.dirInt - cur.dirInt) * lf;
-          cur.waterColor.lerp(todT.waterColor, lf);
-          cur.waveDist  += (todT.waveDistBase  * wxT.distMult  - cur.waveDist)  * lf;
-          cur.waveSpeed += (todT.waveSpeedBase * wxT.speedMult - cur.waveSpeed) * lf;
-          cur.exposure  += (todT.exposure   - cur.exposure)  * lf;
-          cur.starOp    += (todT.starOpacity - cur.starOp)   * lf;
-          cur.sunOp     += (todT.sunOpacity  - cur.sunOp)    * lf;
-          cur.moonOp    += (todT.moonOpacity - cur.moonOp)   * lf;
-          cur.moonGlow  += (todT.moonGlow    - cur.moonGlow) * lf;
-          cur.rockMult  += (wxT.rockMult     - cur.rockMult) * lf;
-          cur.rainOp    += ((wxT.rain ? 0.55 : 0.0) - cur.rainOp) * lf;
+          const lf   = 1 - Math.exp(-1.1 * dt);
+          const envTarget = {
+            ...todT,
+            fogDensity: todT.fogDensity * wxT.fogMult,
+            waveDist:   todT.waveDistBase  * wxT.distMult,
+            waveSpeed:  todT.waveSpeedBase * wxT.speedMult,
+            rockMult:   wxT.rockMult,
+            rainOp:     wxT.rain ? 0.55 : 0.0,
+          };
+          for (const k of ENV_COLOR_KEYS)  cur[k].lerp(envTarget[k], lf);
+          for (const k of ENV_SCALAR_KEYS) cur[k] += (envTarget[k] - cur[k]) * lf;
 
           cur.sunPos.lerp(todRef.current === "sunset" ? SUN_SET_POS : SUN_DAY_POS, lf);
           sunMesh.position.copy(cur.sunPos); sunGlow.position.copy(cur.sunPos);
@@ -524,9 +533,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           wU["distortionScale"].value = cur.waveDist;
           wU["sunDirection"].value.copy(cur.dirPos).normalize();
           renderer.toneMappingExposure = cur.exposure;
-          starMat.opacity = Math.max(0, cur.starOp + (cur.starOp > 0.01 ? Math.sin(elapsed * 2.2) * 0.05 * cur.starOp : 0));
-          sunMat.opacity = cur.sunOp; sunGlowMat.opacity = cur.sunOp * 0.06;
-          moonMat.opacity = cur.moonOp;
+          starMat.opacity = Math.max(0, cur.starOpacity + (cur.starOpacity > 0.01 ? Math.sin(elapsed * 2.2) * 0.05 * cur.starOpacity : 0));
+          sunMat.opacity = cur.sunOpacity; sunGlowMat.opacity = cur.sunOpacity * 0.06;
+          moonMat.opacity = cur.moonOpacity;
           moonHalos.forEach((h, i) => { (h.material as T.MeshBasicMaterial).opacity = cur.moonGlow * HALO_BASE[i]; });
 
           // Rain
@@ -550,6 +559,10 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           }
 
           // Ship movement
+          // Framerate-independent smoothing: sm(k) matches the old per-frame
+          // constants at 60 fps; f60 scales per-frame increments to per-second.
+          const sm  = (k: number) => 1 - Math.exp(-k * dt);
+          const f60 = dt * 60;
           const prevX = ship.position.x, prevZ = ship.position.z;
 
           if (playModeRef.current) {
@@ -571,19 +584,19 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
             }
 
             const tk   = touchKeysRef.current;
-            const fwd  = keys.has("ArrowUp")    || keys.has("w") || keys.has("W") || tk.has("ArrowUp");
-            const back = keys.has("ArrowDown")  || keys.has("s") || keys.has("S") || tk.has("ArrowDown");
-            const left = keys.has("ArrowLeft")  || keys.has("a") || keys.has("A") || tk.has("ArrowLeft");
-            const rgt  = keys.has("ArrowRight") || tk.has("ArrowRight");
+            const fwd  = keys.has("ArrowUp")    || keys.has("w") || tk.has("ArrowUp");
+            const back = keys.has("ArrowDown")  || keys.has("s") || tk.has("ArrowDown");
+            const left = keys.has("ArrowLeft")  || keys.has("a") || tk.has("ArrowLeft");
+            const rgt  = keys.has("ArrowRight") || keys.has("d") || tk.has("ArrowRight");
 
             if (compassResetRef.current) { shipAngle = 0; shipSpeed *= 0.3; compassResetRef.current = false; }
 
             const { maxSpeed, accel, turnSpeed } = shipStatsRef.current;
-            if (fwd)       shipSpeed = Math.min(shipSpeed + accel, maxSpeed);
-            else if (back) shipSpeed = Math.max(shipSpeed - accel * 2, -maxSpeed * 0.25);
-            else           shipSpeed *= 0.984;
+            if (fwd)       shipSpeed = Math.min(shipSpeed + accel * f60, maxSpeed);
+            else if (back) shipSpeed = Math.max(shipSpeed - accel * 2 * f60, -maxSpeed * 0.25);
+            else           shipSpeed *= Math.exp(-0.97 * dt); // ≈ ×0.984/frame at 60 fps
 
-            const turn = turnSpeed * (Math.min(Math.abs(shipSpeed) / maxSpeed, 1) * 0.8 + 0.2);
+            const turn = turnSpeed * (Math.min(Math.abs(shipSpeed) / maxSpeed, 1) * 0.8 + 0.2) * f60;
             if (left) shipAngle += turn;
             if (rgt)  shipAngle -= turn;
 
@@ -592,7 +605,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
                 const xOff = drag.curX - drag.startX;
                 const steerRate = Math.max(-1, Math.min(1, xOff / 55));
                 if (Math.abs(xOff) > 8) shipAngle -= steerRate * turn;
-                helmAngle += (steerRate * 80 - helmAngle) * 0.2;
+                helmAngle += (steerRate * 80 - helmAngle) * sm(13.4);
               } else {
                 if (drag.delta !== 0) {
                   const dragRate = Math.max(-1, Math.min(1, drag.delta / 30));
@@ -605,22 +618,22 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
               const xOff = canvasDrag.curX - canvasDrag.startX;
               const steerRate = Math.max(-1, Math.min(1, xOff / 80));
               if (Math.abs(xOff) > 10) shipAngle -= steerRate * turn;
-              helmAngle += (steerRate * 80 - helmAngle) * 0.2;
+              helmAngle += (steerRate * 80 - helmAngle) * sm(13.4);
             } else {
               const helmTarget = rgt ? 90 : left ? -90 : 0;
-              helmAngle += (helmTarget - helmAngle) * 0.12;
+              helmAngle += (helmTarget - helmAngle) * sm(7.7);
             }
             if (helmImgRef.current) helmImgRef.current.style.transform = `rotate(${helmAngle}deg)`;
           } else {
             // Auto-pilot
-            shipAngle += Math.sin(elapsed * 0.07) * 0.0004;
+            shipAngle += Math.sin(elapsed * 0.07) * 0.0004 * f60;
             const dist2 = Math.sqrt(ship.position.x**2 + ship.position.z**2);
             if (dist2 > WORLD_R * 0.82) {
               const toCenter = Math.atan2(-ship.position.x, -ship.position.z);
               const diff = ((toCenter - shipAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
-              shipAngle += diff * 0.008;
+              shipAngle += diff * sm(0.48);
             }
-            shipSpeed += (shipStatsRef.current.maxSpeed * 0.2 - shipSpeed) * 0.008;
+            shipSpeed += (shipStatsRef.current.maxSpeed * 0.2 - shipSpeed) * sm(0.48);
           }
 
           ship.position.x += Math.sin(shipAngle) * shipSpeed * dt;
@@ -636,7 +649,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           // Island collisions — push-out so spawning inside still ejects correctly
           for (const isl of ISLANDS) {
             const dx = ship.position.x - isl.x, dz = ship.position.z - isl.z;
-            const thresh = isl.radius + 6;
+            const thresh = isl.radius + ISLAND_COLLISION_PAD;
             const dist2 = dx*dx + dz*dz;
             if (dist2 < thresh*thresh) {
               const dist = Math.sqrt(dist2) || 0.001;
@@ -656,17 +669,17 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           shipPosRef.current = { x: ship.position.x, z: ship.position.z, angle: shipAngle };
           if (elapsed - lastPosSave > 5) {
             lastPosSave = elapsed;
-            try { localStorage.setItem("shipPos", JSON.stringify(shipPosRef.current)); } catch {}
+            storageSet("shipPos", JSON.stringify(shipPosRef.current));
           }
 
           // Floating collectibles — bob always, scoop up only while playing
-          const gained = collectibles.update(elapsed, ship.position.x, ship.position.z, playModeRef.current);
+          const gained = collectibles.update(elapsed, dt, ship.position.x, ship.position.z, playModeRef.current);
           if (gained > 0) {
             scoreRef.current += gained;
             if (playModeRef.current) { setScore(scoreRef.current); addScorePop(gained); }
             if (elapsed - lastScoreSave > 2) {
               lastScoreSave = elapsed;
-              try { localStorage.setItem("score", String(scoreRef.current)); } catch {}
+              storageSet("score", String(scoreRef.current));
             }
           }
 
@@ -676,7 +689,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
           uiFrame++;
           if (playModeRef.current && uiFrame % 6 === 0) {
-            setNearIsland(closestDist2 < 14400 ? closestName : null);
+            setNearIsland(closestDist2 < NEAR_ISLAND_DIST ** 2 ? closestName : null);
             setHeading(Math.round(((shipAngle * 180 / Math.PI) % 360 + 360) % 360));
             setSpeedPct(Math.round(Math.abs(shipSpeed) / shipStatsRef.current.maxSpeed * 100));
             setShipPos({ x: Math.round(ship.position.x), z: Math.round(ship.position.z) });
@@ -696,9 +709,10 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
           // Camera
           const camH = 28 + shipSpeed * 0.35, camD = 52 + shipSpeed * 0.6;
-          camPos.x += (ship.position.x - Math.sin(shipAngle) * camD - camPos.x) * 0.055;
-          camPos.y += (camH - camPos.y) * 0.055;
-          camPos.z += (ship.position.z - Math.cos(shipAngle) * camD - camPos.z) * 0.055;
+          const camLf = sm(3.4);
+          camPos.x += (ship.position.x - Math.sin(shipAngle) * camD - camPos.x) * camLf;
+          camPos.y += (camH - camPos.y) * camLf;
+          camPos.z += (ship.position.z - Math.cos(shipAngle) * camD - camPos.z) * camLf;
           camera.position.copy(camPos);
           camera.lookAt(ship.position.x, ship.position.y + 5, ship.position.z);
 
@@ -713,10 +727,11 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           renderer.setSize(window.innerWidth, window.innerHeight);
         };
         window.addEventListener("resize", onResize);
-        const onBeforeUnload = () => {
-          try { localStorage.setItem("shipPos", JSON.stringify(shipPosRef.current)); } catch {}
+        const saveProgress = () => {
+          storageSet("shipPos", JSON.stringify(shipPosRef.current));
+          storageSet("score", String(scoreRef.current));
         };
-        window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("beforeunload", saveProgress);
 
         // Canvas drag / joystick
         const onCanvasDown = (e: PointerEvent) => {
@@ -746,25 +761,48 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         disposeAll = () => {
           cancelAnimationFrame(animId);
+          saveProgress();
           window.removeEventListener("keydown",       onKeyDown);
           window.removeEventListener("keyup",         onKeyUp);
           window.removeEventListener("resize",        onResize);
-          window.removeEventListener("beforeunload",  onBeforeUnload);
+          window.removeEventListener("beforeunload",  saveProgress);
           renderer.domElement.removeEventListener("pointerdown",   onCanvasDown);
           renderer.domElement.removeEventListener("pointermove",   onCanvasMove);
           renderer.domElement.removeEventListener("pointerup",     onCanvasUp);
           renderer.domElement.removeEventListener("pointercancel", onCanvasUp);
           collectibles.dispose();
+
+          // Dispose every geometry/material/texture in the scene — covers the
+          // procedural islands, sky, water, stars, rain, and loaded GLB clones.
+          // Material.dispose() is idempotent, so overlap with the caches is fine.
+          const disposeMaterial = (mat: T.Material) => {
+            for (const value of Object.values(mat)) {
+              if (value && typeof value === "object" && "isTexture" in value) {
+                (value as T.Texture).dispose();
+              }
+            }
+            mat.dispose();
+          };
+          scene.traverse((obj) => {
+            const m = obj as T.Mesh;
+            if (!m.geometry && !m.material) return;
+            m.geometry?.dispose();
+            if (Array.isArray(m.material)) m.material.forEach(disposeMaterial);
+            else if (m.material) disposeMaterial(m.material);
+          });
+          scene.clear();
           gltfCache.forEach((group) => {
             group.traverse((child) => {
               const m = child as T.Mesh;
               if (!m.isMesh) return;
               m.geometry?.dispose();
-              if (Array.isArray(m.material)) (m.material as T.Material[]).forEach(mat => mat.dispose());
-              else (m.material as T.Material)?.dispose();
+              if (Array.isArray(m.material)) m.material.forEach(disposeMaterial);
+              else if (m.material) disposeMaterial(m.material);
             });
           });
           gltfCache.clear();
+          waterNormals.dispose();
+          dracoLoader.dispose();
           renderer.dispose();
           if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
         };
@@ -800,8 +838,6 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
       speedPct={speedPct}
       score={score}
       scorePops={scorePops}
-      pressKey={pressKey}
-      releaseKey={releaseKey}
       shipPos={shipPos}
       onHelmPointerDown={onHelmPointerDown}
       onHelmPointerMove={onHelmPointerMove}

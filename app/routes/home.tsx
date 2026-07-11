@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { themes, type ThemeKey } from "@/lib/themes";
+import { useLoaderData } from "react-router";
+import { getAllPosts } from "@/lib/blog";
+import { type ThemeKey } from "@/lib/themes";
+import { useThemeColors } from "@/lib/use-theme-colors";
 import { ScrollIndicator } from "@/components/scroll-indicator";
 import { HeroSection } from "@/components/hero-section";
 import { WorkSection } from "@/components/work-section";
@@ -11,36 +14,34 @@ import { PirateSailingGame } from "@/components/pirate-sailing-game";
 import personalData from "@/data/personal.json";
 import workData from "@/data/work.json";
 
+export async function loader() {
+  // Recent posts come from the same markdown source as the blog routes,
+  // so the homepage can never drift out of sync with /blog.
+  return getAllPosts().slice(0, 4).map(({ content: _content, ...meta }) => meta);
+}
+
 const Home = () => {
+  const recentPosts = useLoaderData<typeof loader>();
   const isDark = true;
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSection, setActiveSection] = useState("");
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeTheme, setActiveTheme] = useState<ThemeKey>("rust");
   const sectionsRef = useRef<(HTMLElement | null)[]>([]);
+  const spotlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
 
-  useEffect(() => {
-    const theme = themes[activeTheme];
-    const root = document.documentElement;
-    if (isDark) {
-      root.style.setProperty("--primary", theme.colors.primaryDark);
-      root.style.setProperty("--accent", theme.colors.accentDark);
-    } else {
-      root.style.setProperty("--primary", theme.colors.primary);
-      root.style.setProperty("--accent", theme.colors.accent);
-    }
-    root.style.setProperty("--bg-1", theme.colors.bg1);
-    root.style.setProperty("--bg-2", theme.colors.bg2);
-    root.style.setProperty("--bg-3", theme.colors.bg3);
-  }, [activeTheme, isDark]);
+  useThemeColors(activeTheme, isDark);
 
+  // Track the cursor with CSS variables instead of state so the spotlight
+  // follows the mouse without re-rendering the whole page on every move.
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) =>
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const handleMouseMove = (e: MouseEvent) => {
+      spotlightRef.current?.style.setProperty("--mouse-x", `${e.clientX}px`);
+      spotlightRef.current?.style.setProperty("--mouse-y", `${e.clientY}px`);
+    };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
@@ -63,7 +64,7 @@ const Home = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Auto-enter play mode if ?play param is present
+  // Auto-enter play mode if ?sails=true is present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("sails") === "true") setIsPlaying(true);
@@ -123,9 +124,10 @@ const Home = () => {
           style={{ opacity: 0.25 }}
         />
         <div
+          ref={spotlightRef}
           className="fixed inset-0 opacity-15 pointer-events-none transition-opacity duration-300 z-0"
           style={{
-            background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, var(--bg-1), transparent 40%)`,
+            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--bg-1), transparent 40%)`,
           }}
         />
 
@@ -149,6 +151,7 @@ const Home = () => {
               sectionsRef={sectionsRef}
             />
             <ThoughtsSection
+              posts={recentPosts}
               activeTheme={activeTheme}
               sectionsRef={sectionsRef}
             />

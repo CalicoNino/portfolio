@@ -1,10 +1,54 @@
+import { memo } from "react";
 import { Link } from "react-router";
 import type { TimeOfDay, Weather } from "./config";
 import { SHIPS, ISLAND_GLB } from "./config";
 import { LoadingScreen } from "./LoadingScreen";
-import { StatBar, TBtn, InfoTooltip } from "./ui-primitives";
+import { StatBar, InfoTooltip } from "./ui-primitives";
 
-export type { TBtn };
+/** Static compass face — only the needle depends on heading, so the ticks,
+ *  labels, and gradients render exactly once. */
+const CompassDial = memo(function CompassDial() {
+  return (
+    <>
+      <defs>
+        <filter id="cShadow">
+          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.7" />
+        </filter>
+        <radialGradient id="cBg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#1a1f2e" stopOpacity="0.92" />
+          <stop offset="100%" stopColor="#0d1017" stopOpacity="0.97" />
+        </radialGradient>
+      </defs>
+      <circle cx="40" cy="40" r="38" fill="url(#cBg)" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+      {Array.from({ length: 36 }).map((_, i) => {
+        const a = (i / 36) * Math.PI * 2;
+        const major = i % 9 === 0;
+        const r1 = major ? 30 : 32, r2 = 34;
+        return (
+          <line key={i}
+            x1={40 + Math.sin(a) * r1} y1={40 - Math.cos(a) * r1}
+            x2={40 + Math.sin(a) * r2} y2={40 - Math.cos(a) * r2}
+            stroke={major ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)"}
+            strokeWidth={major ? "1" : "0.5"}
+          />
+        );
+      })}
+      {([["N", 0, 25], ["S", 180, 25], ["E", 90, 25], ["W", 270, 25]] as [string, number, number][]).map(([lbl, deg, r]) => {
+        const a = (deg * Math.PI) / 180;
+        return (
+          <text key={lbl}
+            x={40 + Math.sin(a) * r} y={40 - Math.cos(a) * r + 3.5}
+            textAnchor="middle" fontSize="8.5"
+            fontFamily="ui-sans-serif,system-ui,sans-serif" fontWeight="800"
+            fill={lbl === "N" ? "#f87171" : "rgba(255,255,255,0.7)"}
+            filter="url(#cShadow)"
+          >{lbl}</text>
+        );
+      })}
+    </>
+  );
+});
 
 export interface GameUIProps {
   mountRef: React.RefObject<HTMLDivElement | null>;
@@ -28,8 +72,6 @@ export interface GameUIProps {
   score: number;
   scorePops: { id: number; amount: number }[];
   shipPos: { x: number; z: number };
-  pressKey: (k: string) => void;
-  releaseKey: (k: string) => void;
   onHelmPointerDown: (e: React.PointerEvent<HTMLImageElement>) => void;
   onHelmPointerMove: (e: React.PointerEvent<HTMLImageElement>) => void;
   onHelmPointerUp: () => void;
@@ -41,7 +83,6 @@ export function GameUI({
   canvasJoystick, todUI, wxUI, onSetTimeOfDay, onSetWeather,
   shipIdx, swapping, onShipPrev, onShipNext,
   nearIsland, heading, speedPct, score, scorePops, shipPos,
-  pressKey, releaseKey,
   onHelmPointerDown, onHelmPointerMove, onHelmPointerUp,
   onCompassClick,
 }: GameUIProps) {
@@ -149,42 +190,7 @@ export function GameUI({
             <div className="fixed top-5 right-5 z-50 flex flex-col items-center gap-2">
               <div className="relative w-20 h-20 cursor-pointer" onClick={onCompassClick} title="Snap to north">
                 <svg viewBox="0 0 80 80" className="w-full h-full drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                  <defs>
-                    <filter id="cShadow">
-                      <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.7" />
-                    </filter>
-                    <radialGradient id="cBg" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#1a1f2e" stopOpacity="0.92" />
-                      <stop offset="100%" stopColor="#0d1017" stopOpacity="0.97" />
-                    </radialGradient>
-                  </defs>
-                  <circle cx="40" cy="40" r="38" fill="url(#cBg)" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
-                  <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-                  {Array.from({ length: 36 }).map((_, i) => {
-                    const a = (i / 36) * Math.PI * 2;
-                    const major = i % 9 === 0;
-                    const r1 = major ? 30 : 32, r2 = 34;
-                    return (
-                      <line key={i}
-                        x1={40 + Math.sin(a) * r1} y1={40 - Math.cos(a) * r1}
-                        x2={40 + Math.sin(a) * r2} y2={40 - Math.cos(a) * r2}
-                        stroke={major ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)"}
-                        strokeWidth={major ? "1" : "0.5"}
-                      />
-                    );
-                  })}
-                  {([["N", 0, 25], ["S", 180, 25], ["E", 90, 25], ["W", 270, 25]] as [string, number, number][]).map(([lbl, deg, r]) => {
-                    const a = (deg * Math.PI) / 180;
-                    return (
-                      <text key={lbl}
-                        x={40 + Math.sin(a) * r} y={40 - Math.cos(a) * r + 3.5}
-                        textAnchor="middle" fontSize="8.5"
-                        fontFamily="ui-sans-serif,system-ui,sans-serif" fontWeight="800"
-                        fill={lbl === "N" ? "#f87171" : "rgba(255,255,255,0.7)"}
-                        filter="url(#cShadow)"
-                      >{lbl}</text>
-                    );
-                  })}
+                  <CompassDial />
                   <g transform={`rotate(${heading} 40 40)`} filter="url(#cShadow)">
                     <polygon points="40,10 43,40 40,34 37,40" fill="#ef4444" />
                     <polygon points="40,10 43,40 40,34 37,40" fill="none" stroke="#7f1d1d" strokeWidth="0.4" />

@@ -6,7 +6,7 @@ import { ArrowRightIcon } from "@/components/icons/arrow-right-icon";
 
 interface ConnectSectionProps {
   activeTheme: ThemeKey;
-  sectionsRef: React.MutableRefObject<(HTMLElement | null)[]>;
+  sectionsRef: React.RefObject<(HTMLElement | null)[]>;
 }
 
 export const ConnectSection = ({

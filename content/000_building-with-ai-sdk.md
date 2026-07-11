@@ -6,6 +6,7 @@ date: "2024-12-15"
 updatedAt: "2024-12-15"
 readTime: "5 min"
 tags: ["AI", "React", "TypeScript"]
+category: "tech"
 ---
 
 # Building with the AI SDK

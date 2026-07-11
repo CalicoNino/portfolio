@@ -6,21 +6,21 @@ interface ScrollIndicatorProps {
   activeSection: string;
 }
 
+const SECTIONS = [
+  { id: "intro", label: "Intro" },
+  { id: "work", label: "Work" },
+  { id: "projects", label: "Projects" },
+  { id: "thoughts", label: "Thoughts" },
+  { id: "connect", label: "Connect" },
+];
+
 export function ScrollIndicator({ activeSection }: ScrollIndicatorProps) {
   const [hoveredSection, setHoveredSection] = useState<number | null>(null);
-
-  const sections = [
-    { id: "intro", label: "Intro" },
-    { id: "work", label: "Work" },
-    { id: "projects", label: "Projects" },
-    { id: "thoughts", label: "Thoughts" },
-    { id: "connect", label: "Connect" },
-  ];
 
   return (
     <nav className="fixed left-8 top-1/2 -translate-y-1/2 z-50 hidden xl:block">
       <div className="flex flex-col gap-6">
-        {sections.map((section, index) => (
+        {SECTIONS.map((section, index) => (
           <button
             key={section.id}
             onClick={() => {
@@ -79,7 +79,7 @@ export function ScrollIndicator({ activeSection }: ScrollIndicatorProps) {
                   : "opacity-0 -translate-x-2"
               }`}
             >
-              {String(index).padStart(2, "0")}
+              {section.label}
             </span>
           </button>
         ))}

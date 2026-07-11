@@ -4,6 +4,11 @@ import matter from "gray-matter"
 
 const contentDirectory = path.join(process.cwd(), "content")
 
+export type BlogCategory = "tech" | "history"
+
+/** Post metadata without the markdown body — what list views need. */
+export type BlogPostMeta = Omit<BlogPost, "content">
+
 export interface BlogPost {
   slug: string
   title: string
@@ -12,20 +17,19 @@ export interface BlogPost {
   updatedAt: string
   readTime: string
   tags: string[]
+  category: BlogCategory
   content: string
 }
 
 export function getAllPosts(): BlogPost[] {
-  // Get all markdown files from content directory
   const fileNames = fs.readdirSync(contentDirectory)
   const allPosts = fileNames
     .filter((fileName) => fileName.endsWith(".md"))
     .map((fileName) => {
-      // Read markdown file as string
       const fullPath = path.join(contentDirectory, fileName)
       const fileContents = fs.readFileSync(fullPath, "utf8")
 
-      // Use gray-matter to parse the post metadata section
+      // Parse the post metadata section
       const { data, content } = matter(fileContents)
 
       return {
@@ -36,32 +40,16 @@ export function getAllPosts(): BlogPost[] {
         updatedAt: data.updatedAt,
         readTime: data.readTime,
         tags: data.tags || [],
+        category: data.category ?? "tech",
         content,
-      }
+      } satisfies BlogPost
     })
 
   // Sort posts by date (newest first)
-  return allPosts.sort((a, b) => (a.date > b.date ? -1 : 1))
+  return allPosts.sort((a, b) => b.date.localeCompare(a.date))
 }
 
 export function getPostBySlug(slug: string): BlogPost | null {
-  const fileNames = fs.readdirSync(contentDirectory)
-  const fileName = fileNames.find((name) => name.includes(slug) && name.endsWith(".md"))
-
-  if (!fileName) return null
-
-  const fullPath = path.join(contentDirectory, fileName)
-  const fileContents = fs.readFileSync(fullPath, "utf8")
-  const { data, content } = matter(fileContents)
-
-  return {
-    slug: data.slug,
-    title: data.title,
-    excerpt: data.excerpt,
-    date: data.date,
-    updatedAt: data.updatedAt,
-    readTime: data.readTime,
-    tags: data.tags || [],
-    content,
-  }
+  // Match on the canonical frontmatter slug, not the filename.
+  return getAllPosts().find((post) => post.slug === slug) ?? null
 }

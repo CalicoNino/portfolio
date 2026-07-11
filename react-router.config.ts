@@ -1,15 +1,16 @@
 import type { Config } from "@react-router/dev/config";
-import blogPosts from "./data/blog-posts.json";
+import { getAllPosts } from "./lib/blog";
 
 export default {
   ssr: true,
   async prerender() {
+    const posts = getAllPosts();
     return [
       "/",
       "/blog",
       "/thoughts",
-      ...blogPosts.map((p) => `/blog/${p.slug}`),
-      ...blogPosts.map((p) => `/thoughts/${p.slug}`),
+      ...posts.map((p) => `/blog/${p.slug}`),
+      ...posts.map((p) => `/thoughts/${p.slug}`),
     ];
   },
 } satisfies Config;

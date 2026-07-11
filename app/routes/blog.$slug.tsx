@@ -1,8 +1,9 @@
-import { Link, useLoaderData } from "react-router";
+import { Link, data, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { themes, type ThemeKey } from "@/lib/themes";
+import { type ThemeKey } from "@/lib/themes";
+import { useThemeColors } from "@/lib/use-theme-colors";
 import { PirateIcon } from "@/components/icons/pirate-icon";
 import { SunIcon } from "@/components/icons/sun-icon";
 import { MoonIcon } from "@/components/icons/moon-icon";
@@ -11,7 +12,8 @@ import { getPostBySlug } from "@/lib/blog";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const post = params.slug ? getPostBySlug(params.slug) : null;
-  return post;
+  // Serve the not-found UI with a real 404 status so crawlers don't index it.
+  return data(post, post ? 200 : 404);
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -27,6 +29,38 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
+function NavIconLink({ to, label, tooltip, children }: {
+  to: string; label: string; tooltip: string; children: React.ReactNode;
+}) {
+  return (
+    <div className="relative group">
+      <Link
+        to={to}
+        className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
+        aria-label={label}
+      >
+        {children}
+      </Link>
+      <span className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-card border border-primary/50 rounded text-xs font-mono text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
+        {tooltip}
+      </span>
+    </div>
+  );
+}
+
+function BlogNav() {
+  return (
+    <div className="flex items-center gap-3">
+      <NavIconLink to="/" label="Go to home" tooltip="Go to home">
+        <PirateIcon className="w-5 h-5" />
+      </NavIconLink>
+      <NavIconLink to="/blog" label="View all blogs" tooltip="All blog posts">
+        <GridIcon className="w-5 h-5" />
+      </NavIconLink>
+    </div>
+  );
+}
+
 export default function BlogPost() {
   const post = useLoaderData<typeof loader>();
   const [isDark, setIsDark] = useState(true);
@@ -36,22 +70,7 @@ export default function BlogPost() {
     document.documentElement.classList.toggle("dark", isDark);
   }, [isDark]);
 
-  useEffect(() => {
-    const theme = themes[activeTheme];
-    const root = document.documentElement;
-
-    if (isDark) {
-      root.style.setProperty("--primary", theme.colors.primaryDark);
-      root.style.setProperty("--accent", theme.colors.accentDark);
-    } else {
-      root.style.setProperty("--primary", theme.colors.primary);
-      root.style.setProperty("--accent", theme.colors.accent);
-    }
-
-    root.style.setProperty("--bg-1", theme.colors.bg1);
-    root.style.setProperty("--bg-2", theme.colors.bg2);
-    root.style.setProperty("--bg-3", theme.colors.bg3);
-  }, [activeTheme, isDark]);
+  useThemeColors(activeTheme, isDark);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -77,32 +96,7 @@ export default function BlogPost() {
         {/* Header */}
         <div className="space-y-6 sm:space-y-8 mb-8 sm:mb-12">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="relative group">
-                <Link
-                  to="/"
-                  className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
-                  aria-label="Go to home"
-                >
-                  <PirateIcon className="w-5 h-5" />
-                </Link>
-                <span className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-card border border-primary/50 rounded text-xs font-mono text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
-                  Go to home
-                </span>
-              </div>
-              <div className="relative group">
-                <Link
-                  to="/blog"
-                  className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
-                  aria-label="View all blogs"
-                >
-                  <GridIcon className="w-5 h-5" />
-                </Link>
-                <span className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-card border border-primary/50 rounded text-xs font-mono text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
-                  All blog posts
-                </span>
-              </div>
-            </div>
+            <BlogNav />
 
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
               <div className="flex gap-1.5 sm:gap-2 flex-wrap">
@@ -217,32 +211,7 @@ export default function BlogPost() {
 
         {/* Footer */}
         <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-border">
-          <div className="flex items-center gap-3">
-            <div className="relative group">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
-                aria-label="Go to home"
-              >
-                <PirateIcon className="w-5 h-5" />
-              </Link>
-              <span className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-card border border-primary/50 rounded text-xs font-mono text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
-                Go to home
-              </span>
-            </div>
-            <div className="relative group">
-              <Link
-                to="/blog"
-                className="inline-flex items-center gap-2 text-sm font-mono text-primary hover:text-accent transition-colors duration-300"
-                aria-label="View all blogs"
-              >
-                <GridIcon className="w-5 h-5" />
-              </Link>
-              <span className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-card border border-primary/50 rounded text-xs font-mono text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50">
-                All blog posts
-              </span>
-            </div>
-          </div>
+          <BlogNav />
         </div>
       </article>
     </div>

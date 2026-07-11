@@ -1,16 +1,19 @@
 
 import type React from "react";
+import type personalDataJson from "@/data/personal.json";
 import { themes, type ThemeKey } from "@/lib/themes";
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { TwitterIcon } from "@/components/icons/twitter-icon";
 import { TelegramIcon } from "@/components/icons/telegram-icon";
 import { DiscordIcon } from "@/components/icons/discord-icon";
 
+type PersonalData = typeof personalDataJson;
+
 interface HeroSectionProps {
-  personalData: any;
+  personalData: PersonalData;
   activeTheme: ThemeKey;
   switchTheme: (theme: ThemeKey) => void;
-  sectionsRef: React.MutableRefObject<(HTMLElement | null)[]>;
+  sectionsRef: React.RefObject<(HTMLElement | null)[]>;
 }
 
 export function HeroSection({
@@ -82,81 +85,29 @@ export function HeroSection({
           {/* Bio and Status */}
           <div className="space-y-6 max-w-md animate-fade-in-stagger-3">
             <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-              {personalData.bio.split("Result<")[0]}
+              {personalData.bio.prefix}
               <span className="text-primary font-mono">
                 {" "}
                 {theme.resultSyntax}
               </span>
-              <span className="text-accent">features, code</span>
+              <span className="text-accent">{personalData.bio.highlight}</span>
               <span className="text-primary font-mono">
                 {theme.resultClosing}
               </span>
-              {personalData.bio.split(">")[1]}
+              {personalData.bio.suffix}
             </p>
 
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center gap-2 font-mono">
                 <div className="w-2 h-2 bg-accent rounded-full animate-pulse shadow-[0_0_8px_oklch(0.65_0.28_15/0.6)]"></div>
-                {activeTheme === "rust" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      currently_watching:
-                    </span>
-                    <span className="text-accent">
-                      &quot;{personalData.funFacts.currently_watching}&quot;
-                    </span>
-                  </>
-                )}
-                {activeTheme === "go" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      CurrentlyWatching:{" "}
-                    </span>
-                    <span className="text-accent">
-                      &quot;{personalData.funFacts.currently_watching}&quot;
-                    </span>
-                  </>
-                )}
-                {activeTheme === "java" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      getCurrentlyWatching() ={" "}
-                    </span>
-                    <span className="text-accent">
-                      &quot;{personalData.funFacts.currently_watching}&quot;
-                    </span>
-                  </>
-                )}
-                {activeTheme === "typescript" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      currentlyWatching:{" "}
-                    </span>
-                    <span className="text-accent">
-                      &quot;{personalData.funFacts.currently_watching}&quot;
-                    </span>
-                  </>
-                )}
-                {activeTheme === "python" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      currently_watching ={" "}
-                    </span>
-                    <span className="text-accent">
-                      &quot;{personalData.funFacts.currently_watching}&quot;
-                    </span>
-                  </>
-                )}
-                {activeTheme === "sql" && (
-                  <>
-                    <span className="text-muted-foreground">
-                      currently_watching ={" "}
-                    </span>
-                    <span className="text-accent">
-                      &apos;{personalData.funFacts.currently_watching}&apos;
-                    </span>
-                  </>
-                )}
+                <span className="text-muted-foreground">
+                  {theme.watchingLabel}
+                </span>
+                <span className="text-accent">
+                  {theme.quote}
+                  {personalData.funFacts.currently_watching}
+                  {theme.quote}
+                </span>
               </div>
             </div>
           </div>

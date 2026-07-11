@@ -54,21 +54,3 @@ export function StatBar({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
-export function TBtn({ k, children, className, pressKey, releaseKey }: {
-  k: string; children: React.ReactNode; className?: string;
-  pressKey: (k: string) => void; releaseKey: (k: string) => void;
-}) {
-  return (
-    <button
-      onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pressKey(k); }}
-      onPointerUp={() => releaseKey(k)}
-      onPointerLeave={() => releaseKey(k)}
-      onPointerCancel={() => releaseKey(k)}
-      onContextMenu={(e) => e.preventDefault()}
-      className={`flex items-center justify-center w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm border border-white/25 text-white text-2xl active:bg-white/20 select-none touch-none cursor-pointer ${className ?? ""}`}
-    >
-      {children}
-    </button>
-  );
-}

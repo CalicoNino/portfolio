@@ -6,7 +6,7 @@ import { ArrowRightIcon } from "@/components/icons/arrow-right-icon";
 
 interface ProjectsSectionProps {
   activeTheme: ThemeKey;
-  sectionsRef: React.MutableRefObject<(HTMLElement | null)[]>;
+  sectionsRef: React.RefObject<(HTMLElement | null)[]>;
 }
 
 export const ProjectsSection = ({
@@ -29,20 +29,15 @@ export const ProjectsSection = ({
             </span>
             featured_projects
             <span className="text-primary font-mono">
-              {activeTheme === "rust" && " { /* Vec<Project> */ }"}
-              {activeTheme === "go" && " { /* []Project */ }"}
-              {activeTheme === "java" && " { /* Project[] */ }"}
-              {activeTheme === "typescript" && " { /* Project[] */ }"}
-              {activeTheme === "python" && ": /* list[Project] */"}
-              {activeTheme === "sql" && " ( /* Project */ )"}
+              {themes[activeTheme].listAnnotation("Project")}
             </span>
           </h2>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {projectsData.map((project, index) => (
+          {projectsData.map((project) => (
             <a
-              key={index}
+              key={project.title}
               href={project.link}
               target="_blank"
               rel="noopener noreferrer"
@@ -92,12 +87,7 @@ export const ProjectsSection = ({
         </div>
 
         <div className="text-primary font-mono text-2xl">
-          {activeTheme === "rust" && "/* end impl */"}
-          {activeTheme === "go" && "/* end */"}
-          {activeTheme === "java" && "/* end class */"}
-          {activeTheme === "typescript" && "/* end */"}
-          {activeTheme === "python" && "# end"}
-          {activeTheme === "sql" && "-- end"}
+          {themes[activeTheme].endComment}
         </div>
       </div>
     </section>

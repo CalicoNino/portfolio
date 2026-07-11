@@ -3,7 +3,11 @@
   "email": "caliconino@duck.com",
   "location": "Canada",
   "status": "Available",
-  "bio": "I turn caffeine into Result<features, code>. Fullstack dev who puts cool stuff on the web and blockchains.",
+  "bio": {
+    "prefix": "I turn caffeine into",
+    "highlight": "features, code",
+    "suffix": ". Fullstack dev who puts cool stuff on the web and blockchains."
+  },
   "currentRole": {
     "title": "Software Engineer",
     "company": "Nibiru Chain",

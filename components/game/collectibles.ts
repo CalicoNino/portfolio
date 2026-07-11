@@ -23,7 +23,7 @@ export interface Collectibles {
   group: T.Group;
   /** advance bob/spin animation; when in play mode, scoop up nearby items.
    *  returns points gained this frame. */
-  update(elapsed: number, shipX: number, shipZ: number, collect: boolean): number;
+  update(elapsed: number, dt: number, shipX: number, shipZ: number, collect: boolean): number;
   dispose(): void;
 }
 
@@ -135,7 +135,7 @@ export function buildCollectibles(
   const POP_DUR = 0.45;
   const r2 = COLLECT_RADIUS * COLLECT_RADIUS;
 
-  const update = (elapsed: number, shipX: number, shipZ: number, collect: boolean): number => {
+  const update = (elapsed: number, dt: number, shipX: number, shipZ: number, collect: boolean): number => {
     let gained = 0;
     crateGlowMat.opacity = 0.42 + Math.sin(elapsed * 2.0) * 0.18;
     chestGlowMat.opacity = 0.55 + Math.sin(elapsed * 2.6) * 0.22;
@@ -153,14 +153,14 @@ export function buildCollectibles(
           const s = Math.max(0.001, 1 - t);
           it.group.scale.setScalar(s);
           it.group.position.y = it.baseY + t * 6;
-          it.group.rotation.y += 0.4;
+          it.group.rotation.y += 24 * dt; // ≈ 0.4/frame at 60 fps
         }
         continue;
       }
 
       // Idle float: gentle bob + slow spin.
       it.group.position.y = it.baseY + Math.sin(elapsed * 1.1 + it.bobPhase) * 0.5;
-      it.group.rotation.y += it.spin * 0.016;
+      it.group.rotation.y += it.spin * dt;
 
       if (collect) {
         const dx = it.group.position.x - shipX, dz = it.group.position.z - shipZ;
