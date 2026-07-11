@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as T from "three";
 import { buildProceduralIslands } from "./game/build-islands";
 import { buildCollectibles } from "./game/collectibles";
+import { buildWake } from "./game/wake";
 import {
   ISLAND_COLLISION_PAD, ISLAND_GLB, ISLAND_SPAWN_PAD, ISLANDS, NEAR_ISLAND_DIST,
   RAIN_COUNT, SHIPS, WEATHER_PRESETS, WORLD_R,
@@ -299,6 +300,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
 
         // ── Floating collectibles (crates & treasure chests) ──────────────────
         const collectibles = buildCollectibles(scene, ISLANDS, WORLD_R, THREE);
+
+        // ── Bow/stern wake foam ───────────────────────────────────────────────
+        const wake = buildWake(scene, THREE);
         scoreRef.current = (() => {
           const s = parseInt(storageGet("score") ?? "0", 10);
           return Number.isFinite(s) && s >= 0 ? s : 0;
@@ -640,6 +644,9 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           ship.position.z += Math.cos(shipAngle) * shipSpeed * dt;
           ship.rotation.y  = shipAngle;
 
+          // Wake foam trails the hull whenever the ship is moving
+          wake.update(dt, ship.position.x, ship.position.z, shipAngle, shipSpeed, shipStatsRef.current.maxSpeed);
+
           // Boundary
           if (ship.position.x**2 + ship.position.z**2 > WORLD_R**2) {
             shipAngle = Math.atan2(ship.position.x, ship.position.z) + Math.PI;
@@ -771,6 +778,7 @@ export function PirateSailingGame({ playMode = true, onExitPlay }: PirateSailing
           renderer.domElement.removeEventListener("pointerup",     onCanvasUp);
           renderer.domElement.removeEventListener("pointercancel", onCanvasUp);
           collectibles.dispose();
+          wake.dispose();
 
           // Dispose every geometry/material/texture in the scene — covers the
           // procedural islands, sky, water, stars, rain, and loaded GLB clones.
