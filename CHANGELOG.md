@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/CalicoNino/portfolio/compare/v1.3.0...v1.4.0) (2026-07-13)
+
+
+### Features
+
+* add bow and stern wake foam as ships cut through the water ([c960a7a](https://github.com/CalicoNino/portfolio/commit/c960a7a05bd2d3be90c212021f52dd624a2415d4))
+
 # [1.3.0](https://github.com/CalicoNino/portfolio/compare/v1.2.0...v1.3.0) (2026-06-05)
 
 
